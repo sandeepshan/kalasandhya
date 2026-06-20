@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kalasandhya 2026 — Program Coordination</title>
+
+<!-- PWA: manifest + theme -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1F4D2E">
+<meta name="description" content="Cultural program coordination and running order for Kalasandhya 2026">
+
+<!-- Icons -->
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+
+<!-- iOS: enables full-screen "app" behaviour when added to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kalasandhya">
+
+<!-- Android / Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+  :root{
+    --maroon:#7A1F2B;
+    --maroon-dark:#4A1019;
+    --green:#1F4D2E;
+    --green-dark:#123320;
+    --green-light:#E8F0E5;
+    --marigold:#E8943A;
+    --marigold-dark:#A8631C;
+    --gold:#C7972A;
+    --ivory:#FBF4E6;
+    --ivory-dark:#F2E6CC;
+    --ink:#2B2420;
+    --ink-soft:#6B5F52;
+    --line:#E0D3B8;
+    --white:#FFFFFF;
+    --radius:10px;
+    --radius-lg:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:var(--ivory);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .font-display{font-family:'Tiro Devanagari Sanskrit', 'Cormorant Garamond', Georgia, serif;}
+
+  /* ===== Pookalam header ===== */
+  .pookalam-header{
+    position:relative;
+    background:var(--green);
+    overflow:hidden;
+    padding:0;
+  }
+  .pookalam-ring{
+    width:100%;
+    height:64px;
+    display:block;
+  }
+  .header-content{
+    padding:28px 32px 32px;
+    text-align:center;
+    position:relative;
+  }
+  .header-content .eyebrow{
+    font-size:13px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--marigold);
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .header-content h1{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    color:var(--ivory);
+    font-size:42px;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:0.02em;
+  }
+  .header-content .sub{
+    color:#CFE0CC;
+    font-size:15px;
+    margin:0;
+  }
+  .pookalam-ring-bottom{
+    width:100%;
+    height:18px;
+    display:block;
+    transform:rotate(180deg);
+  }
+
+  /* ===== Tab nav ===== */
+  .tabbar{
+    display:flex;
+    gap:4px;
+    background:var(--white);
+    border-bottom:2px solid var(--line);
+    padding:0 24px;
+    position:sticky;
+    top:0;
+    z-index:50;
+    overflow-x:auto;
+  }
+  .tab-btn{
+    appearance:none;
+    border:none;
+    background:none;
+    padding:16px 20px 14px;
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    white-space:nowrap;
+    font-family:inherit;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tab-btn .count{
+    background:var(--ivory-dark);
+    color:var(--ink-soft);
+    font-size:12px;
+    font-weight:700;
+    padding:1px 7px;
+    border-radius:10px;
+  }
+  .tab-btn.active{
+    color:var(--maroon);
+    border-bottom-color:var(--marigold);
+  }
+  .tab-btn.active .count{
+    background:var(--marigold);
+    color:var(--white);
+  }
+  .tab-btn:hover{color:var(--maroon);}
+
+  .container{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 24px 80px;
+  }
+
+  /* ===== Toolbar ===== */
+  .toolbar{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .search-input{
+    flex:1;
+    min-width:200px;
+    padding:10px 14px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    font-size:14px;
+    font-family:inherit;
+    background:var(--white);
+  }
+  .search-input:focus{outline:none;border-color:var(--marigold);}
+  select.filter-select{
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    font-size:14px;
+    font-family:inherit;
+    background:var(--white);
+    color:var(--ink);
+  }
+  .stat-pills{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .stat-pill{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 16px;
+    font-size:13px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .stat-pill b{color:var(--ink);font-weight:700;}
+  .stat-pill.warn{border-color:#E8C9A0;background:#FBF1E3;color:var(--marigold-dark);}
+  .stat-pill.warn b{color:var(--marigold-dark);}
+  .stat-pill.ok{border-color:#BFD8C2;background:#EEF6EE;color:var(--green);}
+  .stat-pill.ok b{color:var(--green);}
+
+  /* ===== Category breakdown cards ===== */
+  .category-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .category-card{
+    border-radius:var(--radius-lg);
+    padding:16px 14px;
+    text-align:center;
+    border:1px solid transparent;
+  }
+  .cc-icon{width:26px;height:26px;margin-bottom:8px;}
+  .cc-count{font-family:'Cormorant Garamond', Georgia, serif;font-size:28px;font-weight:700;line-height:1;}
+  .cc-label{font-size:12.5px;font-weight:600;margin-top:4px;opacity:0.85;}
+  .cc-coral{background:#FAECE7;color:#8A3B1E;border-color:#F0997B;}
+  .cc-teal{background:#E1F5EE;color:#0F6E56;border-color:#5DCAA5;}
+  .cc-amber{background:#FAEEDA;color:#854F0B;border-color:#EF9F27;}
+  .cc-purple{background:#EEEDFE;color:#3C3489;border-color:#7F77DD;}
+  .cc-gray{background:#F1EFE8;color:#444441;border-color:#B4B2A9;}
+
+  /* ===== Sponsor tiers ===== */
+  .tier-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .tier-card{
+    border-radius:var(--radius-lg);
+    padding:16px 14px;
+    text-align:center;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform 0.12s ease;
+  }
+  .tier-card:hover{transform:translateY(-2px);}
+  .tier-card.active{box-shadow:0 0 0 2px currentColor inset;}
+  .tier-icon{width:26px;height:26px;margin-bottom:8px;}
+  .tier-count{font-family:'Cormorant Garamond', Georgia, serif;font-size:28px;font-weight:700;line-height:1;}
+  .tier-label{font-size:12.5px;font-weight:700;margin-top:4px;letter-spacing:0.03em;text-transform:uppercase;}
+  .tier-platinum{background:#EEF1F4;color:#3D4A57;border-color:#A9B7C4;}
+  .tier-gold{background:#FBF1D7;color:#8A6310;border-color:var(--gold);}
+  .tier-silver{background:#F1F2F3;color:#5B5F63;border-color:#B7BABD;}
+  .tier-bronze{background:#F5E6D8;color:#8A4F1E;border-color:#C98549;}
+
+  .sponsor-form{
+    display:grid;
+    grid-template-columns:1.3fr 1fr 0.9fr auto;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .sponsor-form-extended{
+    grid-template-columns:1.2fr 1fr 0.9fr 0.8fr 0.8fr auto;
+  }
+  .sponsor-form input, .sponsor-form select{
+    padding:9px 12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:13.5px;
+    font-family:inherit;
+    background:var(--white);
+    color:var(--ink);
+  }
+  .sponsor-form button{
+    border:none;
+    background:var(--marigold);
+    color:var(--white);
+    padding:9px 18px;
+    border-radius:8px;
+    font-size:13.5px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+  }
+  .sponsor-form button:hover{background:var(--marigold-dark);}
+
+  .sponsor-section{margin-bottom:22px;}
+  .sponsor-section-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .sponsor-section-header .tier-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .tier-dot.tier-platinum{background:#A9B7C4;}
+  .tier-dot.tier-gold{background:var(--gold);}
+  .tier-dot.tier-silver{background:#B7BABD;}
+  .tier-dot.tier-bronze{background:#C98549;}
+  .sponsor-section-header h4{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:18px;
+    margin:0;
+    color:var(--ink);
+  }
+  .sponsor-section-header .tier-tag-count{
+    font-size:12px;
+    color:var(--ink-soft);
+    background:var(--ivory-dark);
+    padding:1px 9px;
+    border-radius:999px;
+  }
+  .sponsor-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .sponsor-row{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:11px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .sponsor-row .sname{font-size:14px;font-weight:700;color:var(--ink);}
+  .sponsor-row .scontact{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .sponsor-row .sinfo{flex:1;min-width:0;}
+  .sponsor-row select.tier-select{
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    padding:5px 8px;
+    font-size:12.5px;
+    font-family:inherit;
+    background:var(--white);
+    color:var(--ink);
+  }
+  .sfield{
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:6px;
+    border:1px solid transparent;
+    min-width:70px;
+    text-align:center;
+  }
+  .sfield:hover{background:var(--ivory);border-color:var(--line);}
+  .sfield-amount{font-weight:700;color:var(--green-dark);}
+  .sfield-empty{color:var(--ink-soft);font-style:italic;font-weight:400;}
+  .sfield-input{
+    border:1.5px solid var(--marigold);
+    border-radius:6px;
+    padding:3px 7px;
+    font-size:13px;
+    font-family:inherit;
+    width:90px;
+    background:var(--white);
+    color:var(--ink);
+    outline:none;
+    text-align:center;
+  }
+  .sponsor-row button.rm-btn{
+    border:none;
+    background:none;
+    color:var(--maroon);
+    font-size:18px;
+    cursor:pointer;
+    width:24px;height:24px;
+    flex-shrink:0;
+  }
+
+  /* ===== Participants tab ===== */
+  .participant-picker{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .participant-picker select{
+    flex:1;
+    min-width:240px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    font-size:14px;
+    font-family:inherit;
+    background:var(--white);
+    color:var(--ink);
+  }
+  .participant-picker select:focus{outline:none;border-color:var(--marigold);}
+  .participant-panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:18px 20px;
+  }
+  .participant-panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .participant-panel-header h3{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:21px;
+    color:var(--maroon);
+    margin:0;
+  }
+  .participant-panel-header .pcount{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:var(--ivory-dark);
+    padding:2px 10px;
+    border-radius:999px;
+  }
+  .participant-original-note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:var(--ivory);
+    border:1px dashed var(--line);
+    border-radius:8px;
+    padding:9px 12px;
+    margin:10px 0 16px;
+  }
+  .participant-original-note button{
+    border:none;
+    background:none;
+    color:var(--maroon);
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:underline;
+    font-family:inherit;
+    padding:0;
+    margin-left:6px;
+  }
+  .participant-add-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .participant-add-row input{
+    padding:9px 12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:13.5px;
+    font-family:inherit;
+    background:var(--white);
+    color:var(--ink);
+  }
+  .participant-add-row input.pname-input{flex:1.6;}
+  .participant-add-row input.pmember-input{flex:1;}
+  .participant-add-row button{
+    border:none;
+    background:var(--marigold);
+    color:var(--white);
+    padding:9px 18px;
+    border-radius:8px;
+    font-size:13.5px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+  }
+  .participant-add-row button:hover{background:var(--marigold-dark);}
+  .participant-list{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .participant-row{
+    background:var(--ivory);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 13px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .participant-row .pnum{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-weight:700;
+    color:var(--gold);
+    font-size:15px;
+    min-width:20px;
+  }
+  .participant-row .pinfo{flex:1;min-width:0;}
+  .pinfo-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:14px;
+    align-items:center;
+  }
+  .pfield{
+    font-size:13.5px;
+    color:var(--ink);
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:6px;
+    border:1px solid transparent;
+    display:inline-block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .pfield:hover{background:var(--white);border-color:var(--line);}
+  .pfield:nth-child(1){font-weight:700;}
+  .pfield-member{font-size:12.5px;color:var(--ink-soft);}
+  .pfield-empty{color:var(--ink-soft);font-style:italic;font-weight:400;}
+  .pfield-input{
+    border:1.5px solid var(--marigold);
+    border-radius:6px;
+    padding:3px 7px;
+    font-size:13.5px;
+    font-family:inherit;
+    width:100%;
+    background:var(--white);
+    color:var(--ink);
+    outline:none;
+  }
+  .participant-row button.rm-btn{
+    border:none;
+    background:none;
+    color:var(--maroon);
+    cursor:pointer;
+    width:22px;height:22px;
+    flex-shrink:0;
+  }
+  .participant-empty-row{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:24px 10px;
+    border:1.5px dashed var(--line);
+    border-radius:9px;
+  }
+  .no-program-selected{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--ink-soft);
+  }
+
+  /* ===== Program cards / table ===== */
+  .program-table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--white);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .program-table thead th{
+    background:var(--green);
+    color:var(--ivory);
+    text-align:left;
+    font-size:12px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-weight:600;
+    padding:12px 14px;
+    position:sticky;
+    top:0;
+  }
+  .program-table tbody tr{
+    border-bottom:1px solid var(--ivory-dark);
+  }
+  .program-table tbody tr:last-child{border-bottom:none;}
+  .program-table tbody tr:hover{background:#FBF8F1;}
+  .program-table td{
+    padding:12px 14px;
+    font-size:13.5px;
+    vertical-align:top;
+  }
+  .pname{font-weight:700;color:var(--ink);font-size:14px;}
+  .pname.pending{color:var(--ink-soft);font-style:italic;font-weight:600;}
+  .psub{color:var(--ink-soft);font-size:12.5px;margin-top:2px;}
+  .cat-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:3px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .cat-Group-Dance{background:#F4E3DD;color:#8A3B1E;}
+  .cat-Group-Song{background:#E1ECE0;color:#2C5836;}
+  .cat-Thiruvathirakali{background:#F6E6C8;color:#8A6310;}
+  .cat-Other{background:#E7E2EE;color:#4A3D77;}
+
+  select.category-select{
+    font-size:11.5px;
+    font-weight:700;
+    padding:4px 8px;
+    border-radius:999px;
+    border:1px solid transparent;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+    max-width:140px;
+  }
+  select.cat-select-Group-Dance{background:#F4E3DD;color:#8A3B1E;}
+  select.cat-select-Group-Song{background:#E1ECE0;color:#2C5836;}
+  select.cat-select-Thiruvathirakali{background:#F6E6C8;color:#8A6310;}
+  select.cat-select-Other{background:#E7E2EE;color:#4A3D77;}
+
+  select.coord-select, input.timing-input{
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    padding:6px 8px;
+    font-size:13px;
+    font-family:inherit;
+    width:100%;
+    background:var(--white);
+    color:var(--ink);
+  }
+  select.coord-select:focus, input.timing-input:focus{outline:none;border-color:var(--marigold);}
+  input.timing-input{max-width:90px;}
+
+  .yn-toggle{
+    display:inline-flex;
+    border:1.5px solid var(--line);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .yn-toggle button{
+    border:none;
+    background:var(--white);
+    padding:5px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    color:var(--ink-soft);
+  }
+  .yn-toggle button.yes.active{background:var(--green);color:var(--white);}
+  .yn-toggle button.no.active{background:var(--maroon);color:var(--white);}
+
+  /* ===== Sequence builder tab ===== */
+  .seq-layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  @media (max-width:900px){.seq-layout{grid-template-columns:1fr;}}
+  .panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:18px 18px 20px;
+  }
+  .panel h3{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:20px;
+    color:var(--maroon);
+    margin:0 0 4px;
+  }
+  .panel .panel-hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+  }
+  .pool-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:560px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .pool-item{
+    background:var(--ivory);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    cursor:grab;
+  }
+  .pool-item.dragging{opacity:0.4;}
+  .pool-item .info{min-width:0;}
+  .pool-item .info .t{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .pool-item .info .s{font-size:11.5px;color:var(--ink-soft);}
+  .pool-item button.add-btn{
+    border:none;
+    background:var(--green);
+    color:var(--white);
+    width:26px;height:26px;
+    border-radius:50%;
+    font-size:16px;
+    cursor:pointer;
+    flex-shrink:0;
+    line-height:1;
+  }
+  .pool-item button.add-btn:hover{background:var(--green-dark);}
+
+  .admin-add-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .admin-add-row select, .admin-add-row input{
+    flex:1;
+    padding:8px 10px;
+    border:1.5px solid var(--line);
+    border-radius:7px;
+    font-size:13px;
+    font-family:inherit;
+  }
+  .admin-add-row button{
+    border:none;
+    background:var(--marigold);
+    color:var(--white);
+    padding:8px 16px;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+  }
+  .admin-add-row button:hover{background:var(--marigold-dark);}
+
+  .seq-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-height:120px;
+  }
+  .seq-item{
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:grab;
+  }
+  .seq-item.dragover{border-color:var(--marigold);background:#FFF8EE;}
+  .seq-item .num{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-weight:700;
+    font-size:18px;
+    color:var(--gold);
+    min-width:24px;
+  }
+  .seq-item .grip{color:var(--ink-soft);font-size:14px;cursor:grab;padding:0 2px;}
+  .seq-item .info{flex:1;min-width:0;}
+  .seq-item .info .t{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .seq-item .info .s{font-size:11.5px;color:var(--ink-soft);}
+  .seq-item.admin-slot{background:var(--green-light);border-color:#BFD8C2;}
+  .seq-item.admin-slot .info .t{color:var(--green-dark);}
+  .seq-item button.rm-btn{
+    border:none;
+    background:none;
+    color:var(--maroon);
+    font-size:18px;
+    cursor:pointer;
+    width:24px;height:24px;
+    flex-shrink:0;
+  }
+  .empty-note{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:30px 10px;
+    border:1.5px dashed var(--line);
+    border-radius:9px;
+  }
+
+  /* ===== Final tab ===== */
+  .final-header{
+    text-align:center;
+    margin-bottom:24px;
+  }
+  .final-header .label{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--marigold-dark);
+    font-weight:700;
+  }
+  .final-header h2{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:30px;
+    color:var(--maroon);
+    margin:4px 0 0;
+  }
+  .final-list{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .final-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:14px 6px;
+    border-bottom:1px solid var(--ivory-dark);
+  }
+  .final-row:last-child{border-bottom:none;}
+  .final-row .fnum{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:22px;
+    font-weight:700;
+    color:var(--gold);
+    min-width:34px;
+    text-align:center;
+  }
+  .final-row .finfo{flex:1;min-width:0;}
+  .final-row .finfo .ft{font-size:15px;font-weight:700;color:var(--ink);}
+  .final-row .finfo .fs{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .final-row.admin .finfo .ft{color:var(--green-dark);}
+  .final-row .ftiming{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    min-width:50px;
+    text-align:right;
+  }
+  .final-row .fstatus{min-width:74px;text-align:right;}
+  .badge-ready{background:#E1ECE0;color:#2C5836;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .badge-pending{background:#F6E1C8;color:#8A5710;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .badge-admin{background:#E7E2EE;color:#4A3D77;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+
+  .actions-bar{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .btn-secondary{
+    border:1.5px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    padding:9px 16px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-secondary:hover{border-color:var(--marigold);}
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+  }
+  .empty-state i{font-size:34px;color:var(--line);}
+  .empty-state p{font-size:14px;margin-top:10px;}
+
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--green-dark);
+    color:var(--ivory);
+    padding:10px 20px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    opacity:0;
+    pointer-events:none;
+    transition:all 0.25s ease;
+    z-index:200;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .fb-status-banner{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:var(--maroon-dark);
+    color:var(--ivory);
+    padding:12px 20px;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    z-index:300;
+    flex-wrap:wrap;
+    text-align:center;
+  }
+  .fb-status-banner .fb-msg{font-weight:600;}
+  .fb-status-banner .fb-detail{opacity:0.85;font-family:monospace;font-size:12px;}
+  .fb-status-banner button{
+    border:1px solid rgba(255,255,255,0.4);
+    background:none;
+    color:var(--ivory);
+    padding:4px 12px;
+    border-radius:6px;
+    font-size:12px;
+    cursor:pointer;
+    font-family:inherit;
+    flex-shrink:0;
+  }
+  .fb-status-banner button:hover{background:rgba(255,255,255,0.1);}
+
+  .install-banner{
+    position:fixed;
+    left:0;
+    right:0;
+    background:var(--green-dark);
+    color:var(--ivory);
+    padding:12px 18px;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    z-index:290;
+    flex-wrap:wrap;
+    text-align:center;
+    bottom:0;
+    transition:bottom 0.15s ease;
+  }
+  .install-banner button#installBtn{
+    border:none;
+    background:var(--marigold);
+    color:var(--white);
+    padding:6px 16px;
+    border-radius:7px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    flex-shrink:0;
+  }
+  .install-banner button#installBtn:hover{background:var(--marigold-dark);}
+  .install-banner button#dismissInstallBtn{
+    border:none;
+    background:none;
+    color:var(--ivory);
+    opacity:0.7;
+    cursor:pointer;
+    width:22px;height:22px;
+    flex-shrink:0;
+    padding:0;
+  }
+  .install-banner button#dismissInstallBtn:hover{opacity:1;}
+
+  .loading-screen{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:300px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+  .ico{width:16px;height:16px;vertical-align:-3px;flex-shrink:0;}
+  .empty-state .ico, .empty-state svg{width:34px;height:34px;color:var(--line);}
+  .tab-btn .ico{width:17px;height:17px;}
+
+  /* ===================== MOBILE LAYOUT ===================== */
+  @media (max-width: 640px){
+    .container{padding:18px 14px 70px;}
+    .header-content{padding:22px 18px 26px;}
+    .header-content h1{font-size:32px;}
+    .header-content .sub{font-size:13px;}
+    .tabbar{padding:0 8px;gap:0;}
+    .tab-btn{padding:13px 12px 11px;font-size:13.5px;gap:6px;}
+    .tab-btn .count{font-size:11px;padding:1px 6px;}
+
+    /* Category / tier card grids: 2 per row instead of cramming 4 */
+    .category-grid, .tier-grid{
+      grid-template-columns:repeat(2, 1fr);
+      gap:10px;
+    }
+    .category-card, .tier-card{padding:14px 10px;}
+    .cc-count, .tier-count{font-size:24px;}
+
+    /* Sponsor add form: stack to one column */
+    .sponsor-form, .sponsor-form-extended{
+      grid-template-columns:1fr;
+    }
+    .sponsor-form button{width:100%;}
+
+    /* Participant add row: stack to one column */
+    .participant-add-row{
+      flex-direction:column;
+    }
+    .participant-add-row button{width:100%;}
+
+    /* Toolbar (search + filters): stack */
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .toolbar .search-input, .toolbar select{width:100%;}
+
+    /* ===== Responsive table -> card transform ===== */
+    /* Applies to the programs table and contacts table */
+    .program-table thead{display:none;}
+    .program-table, .program-table tbody, .program-table tr, .program-table td{
+      display:block;
+      width:100% !important;
+    }
+    .program-table{border:none;background:none;}
+    .program-table tr{
+      background:var(--white);
+      border:1px solid var(--line);
+      border-radius:var(--radius-lg);
+      margin-bottom:10px;
+      padding:10px 12px;
+    }
+    .program-table td{
+      border-bottom:none;
+      padding:7px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .program-table td::before{
+      content:attr(data-label);
+      font-size:11px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:0.03em;
+      color:var(--ink-soft);
+      flex-shrink:0;
+      min-width:80px;
+    }
+    .program-table td > *{flex:1;text-align:right;}
+    .program-table td .yn-toggle{justify-content:flex-end;}
+    .program-table td select{max-width:170px;}
+    .program-table td .psub{text-align:right;}
+
+    /* Sequence builder: stack pool/running-order panels */
+    .seq-layout{grid-template-columns:1fr;}
+
+    /* Final tab action buttons: full-width stack */
+    .actions-bar{flex-direction:column;}
+    .actions-bar button{width:100%;justify-content:center;display:flex;}
+
+    /* Pinned diagnostic / sync banners: don't eat the whole screen */
+    .fb-status-banner{font-size:12px;padding:10px 14px;}
+    .install-banner{font-size:12px;padding:10px 14px;}
+    .install-banner span{flex:1 1 100%;order:1;}
+    .install-banner button#installBtn{order:2;}
+    .install-banner button#dismissInstallBtn{order:3;}
+    .fb-status-banner .fb-detail{font-size:10.5px;word-break:break-all;}
+
+    /* Sponsor row fields wrap instead of overflowing */
+    .sponsor-row{flex-wrap:wrap;}
+    .sponsor-row .sinfo{flex:1 1 100%;order:1;}
+    .sfield{order:2;}
+    .sponsor-row select.tier-select{order:3;margin-top:6px;}
+    .sponsor-row button.rm-btn{order:4;margin-top:6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="pookalam-header">
+  <svg class="pookalam-ring" viewBox="0 0 1200 64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" id="ringTop"></svg>
+  <div class="header-content">
+    <p class="eyebrow">WMCG &nbsp;·&nbsp; Onam Celebrations 2026</p>
+    <h1>Kalasandhya</h1>
+    <p class="sub">Cultural program coordination &amp; running order</p>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar">
+  <button class="tab-btn active" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs – group confirmed <span class="count" id="countProgramsConfirmed">0</span></button>
+  <button class="tab-btn" data-tab="programs-needed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>Programs – groups needed <span class="count" id="countProgramsNeeded">0</span></button>
+  <button class="tab-btn" data-tab="contacts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Program contacts <span class="count" id="countContacts">0</span></button>
+  <button class="tab-btn" data-tab="participants"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>Participants <span class="count" id="countParticipants">0</span></button>
+  <button class="tab-btn" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
+  <button class="tab-btn" data-tab="sponsors"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg>Sponsors <span class="count" id="countSponsors">0</span></button>
+  <button class="tab-btn" data-tab="final"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6h9M11 12h9M11 18h9"/></svg>Final running order <span class="count" id="countFinal">0</span></button>
+</div>
+
+<div class="container">
+
+  <div id="tab-programs-confirmed">
+    <div class="loading-screen">Loading programs…</div>
+  </div>
+
+  <div id="tab-programs-needed" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-contacts" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-participants" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-sequence" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-sponsors" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-final" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="firebaseStatusBanner" style="display:none;"></div>
+<div id="installBanner" class="install-banner" style="display:none;">
+  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+  <span>Install Kalasandhya as an app for quicker access</span>
+  <button id="installBtn">Install</button>
+  <button id="dismissInstallBtn" aria-label="Dismiss"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+</div>
+
+<script type="module">
+// ===================== FIREBASE SETUP =====================
+// 1. Go to https://console.firebase.google.com, create a free project.
+// 2. Add a Web App (</> icon) inside the project, copy the config object it gives you.
+// 3. Paste it below, replacing the placeholder values.
+// 4. In the Firebase console, go to Build > Firestore Database > Create database
+//    (start in test mode for now, or use the rules suggested further down in this file).
+//
+// Suggested Firestore rules (Build > Firestore Database > Rules) once you're ready
+// to move off test mode — this keeps the database readable/writable only by anyone
+// with the link, which is fine for an internal committee tool with no sign-in:
+//
+//   rules_version = '2';
+//   service cloud.firestore {
+//     match /databases/{database}/documents {
+//       match /kalasandhya/{document} {
+//         allow read, write: if true;
+//       }
+//     }
+//   }
+//
+// Test mode rules expire after 30 days, so swap to the above (or tighter rules
+// with Firebase Auth) before then or the app will lose write access silently.
+const firebaseConfig = {
+  apiKey: "AIzaSyAKqBGgrWHRAmYOxXALKyDIULkPnZ1oyig",
+  authDomain: "kalasandhya.firebaseapp.com",
+  projectId: "kalasandhya",
+  storageBucket: "kalasandhya.firebasestorage.app",
+  messagingSenderId: "475383098157",
+  appId: "1:475383098157:web:f5de02f34fcf0d9fd301a4"
+};
+
+let db = null;
+let setDoc = null;
+let onSnapshot = null;
+let doc = null;
+let firebaseReady = false;
+let firebaseError = null;
+
+let DOC_PROGRAMS = null;
+let DOC_SEQUENCE = null;
+let DOC_SPONSORS = null;
+let DOC_PARTICIPANTS = null;
+
+async function initFirebase(){
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") return;
+  try{
+    const timeout = new Promise((_, reject)=>setTimeout(()=>reject(new Error('Firebase load timed out')), 6000));
+    const loadModules = Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js")
+    ]);
+    const [{ initializeApp }, firestoreMod] = await Promise.race([loadModules, timeout]);
+    doc = firestoreMod.doc;
+    setDoc = firestoreMod.setDoc;
+    onSnapshot = firestoreMod.onSnapshot;
+    const app = initializeApp(firebaseConfig);
+    db = firestoreMod.getFirestore(app);
+    DOC_PROGRAMS = doc(db, 'kalasandhya', 'programs');
+    DOC_SEQUENCE = doc(db, 'kalasandhya', 'sequence');
+    DOC_SPONSORS = doc(db, 'kalasandhya', 'sponsors');
+    DOC_PARTICIPANTS = doc(db, 'kalasandhya', 'participants');
+    firebaseReady = true;
+  }catch(e){
+    console.error('Firebase failed to load, falling back to local storage', e);
+    firebaseReady = false;
+    firebaseError = e.message || String(e);
+  }
+}
+
+function renderFirebaseStatusBanner(){
+  const el = document.getElementById('firebaseStatusBanner');
+  if(!el) return;
+  // Only show the banner if the person has actually tried to configure Firebase
+  // (left as placeholder = intentionally running local-only, not an error).
+  const attemptedFirebase = firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY";
+  if(!attemptedFirebase || !firebaseError){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    repositionInstallBanner();
+    return;
+  }
+  el.className = 'fb-status-banner';
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <span class="fb-msg">⚠ Live sync isn't connecting — running on this browser's local storage instead.</span>
+    <span class="fb-detail">${escapeHtml(firebaseError)}</span>
+    <button id="dismissFbBanner">Dismiss</button>
+  `;
+  document.getElementById('dismissFbBanner').addEventListener('click', ()=>{
+    el.style.display = 'none';
+    repositionInstallBanner();
+  });
+  repositionInstallBanner();
+}
+
+// ===================== DATA =====================
+const RAW_PROGRAMS = [{"name": "Neetha Sandeep", "category": "Group Dance", "program_name": "Fusion Dance", "duration": "", "participants": "", "audio_tracks": "", "email1": "neethavijay18@gmail.com", "contact": "0415234823", "can_form_group": "Yes"}, {"name": "Sindhu kollakkal", "category": "Thiruvathirakali", "program_name": "Thiruvathirakkali", "duration": "Max 10mins", "participants": "10 participants _ WMCG Members", "audio_tracks": "Will be submitted ", "email1": "sindhu.sindhu78@gmail.com", "contact": "0470636266", "can_form_group": "Yes"}, {"name": "Payal Kumar ", "category": "Group Dance", "program_name": "Girls 6 to 8", "duration": "5 mins", "participants": "235", "audio_tracks": "", "email1": "payalahuja@gmail.com", "contact": "0423316269", "can_form_group": "Yes"}, {"name": "Payal Kumar ", "category": "Group Dance", "program_name": "Girls 10 to 12", "duration": "5mins", "participants": "235", "audio_tracks": "", "email1": "payalahuja@gmail.com", "contact": "0423316269", "can_form_group": "Yes"}, {"name": "Payal Kumar ", "category": "Group Dance", "program_name": "Girls 12 to 16", "duration": "5 mins", "participants": "235", "audio_tracks": "", "email1": "payalahuja@gmail.com", "contact": "0423 316 269 ", "can_form_group": "Yes"}, {"name": "Payal Kumar ", "category": "Group Dance", "program_name": "Ladies dance ", "duration": "5 mins", "participants": "235", "audio_tracks": "", "email1": "payalahuja@gmail.com", "contact": "0423 316 269 ", "can_form_group": "Yes"}, {"name": "Payal Kumar ", "category": "Group Dance", "program_name": "Boys dance", "duration": "5 mins", "participants": "235", "audio_tracks": "", "email1": "payalahuja@gmail.com", "contact": "0423 316 269 ", "can_form_group": "Yes"}, {"name": "Anay Vinod ", "category": "Group Dance", "program_name": "", "duration": "", "participants": "331", "audio_tracks": "", "email1": "prashuvinod1@gmail.com", "contact": "0435323028", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Abhay Vinod ", "category": "Group Dance", "program_name": "", "duration": "", "participants": "331", "audio_tracks": "", "email1": "prashuvinod1@gmail.com", "contact": "0435323028", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Vivaan Sandeep", "category": "Group Dance", "program_name": "", "duration": "", "participants": "278", "audio_tracks": "", "email1": "sandeepshankar28@gmail.com", "contact": "0420776804", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Diva Baiju & Neva Baiju", "category": "Group Dance", "program_name": "", "duration": "", "participants": "308", "audio_tracks": "", "email1": "baijubly@gmail.com", "contact": "0469882357", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Remi George", "category": "Group Dance", "program_name": "Group dance ", "duration": "5:00", "participants": "396", "audio_tracks": "", "email1": "remi.george@gmail.com", "contact": "0469882400", "can_form_group": "Yes"}, {"name": "Mary Jenney Joseph", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Nia Mary Joseph 335", "audio_tracks": "", "email1": "jenney4u@gmail.com", "contact": "0470 381 773", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Shaima Sujeesh", "category": "Group Dance", "program_name": "Group dance - semi classical", "duration": "5mins", "participants": "Will provide later ", "audio_tracks": "Will add later", "email1": "kalabhavandanceacademy@gmail.com", "contact": "0448968990", "can_form_group": "Yes"}, {"name": "Shaima Sujeesh", "category": "Group Dance", "program_name": "Group dance - bollywood", "duration": "5 mins", "participants": "Will provide later", "audio_tracks": "Will add later ", "email1": "kalabhavandanceacademy@gmail.com", "contact": "0448968990", "can_form_group": "Yes"}, {"name": "Bijila Hinso", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Bijila Hinso - 259\nAleena Hinso - 259", "audio_tracks": "", "email1": "hinsojose@googlemail.com", "contact": "0469273673", "can_form_group": "Yes"}, {"name": "Remya Pillai", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Ananya Pillai - 7 year old\nRemya Pillai \nMembership number - 374", "audio_tracks": "", "email1": "remya.cmps@gmail.com", "contact": "0411536592", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Jestine jacob ", "category": "Group Song", "program_name": "Melody ", "duration": "7", "participants": "2", "audio_tracks": "Yes", "email1": "justin83kply@gmail.com", "contact": "0415323355", "can_form_group": "Yes"}, {"name": "Arathi Marar Puthiyadath", "category": "Group Dance", "program_name": "", "duration": "", "participants": "", "audio_tracks": "", "email1": "arathimarar@gmail.com", "contact": "0435226216", "can_form_group": "Yes"}, {"name": "Neil Marar", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Neil", "audio_tracks": "", "email1": "arathimarar@gmail.com", "contact": "0435226216", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Christiano John Benny", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Christiano John Benny - 233", "audio_tracks": "", "email1": "marydita@gmail.com", "contact": "0468338376", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Pinky Kakkassery ", "category": "Group Dance", "program_name": "Dazzling Divas", "duration": "5:04", "participants": "1. Pinky Kakkassery - 305\n2. Namitha Mohandas (Gireendra Shyam) - 284\n3. \u2060Steffi - 389\n4. \u2060Sonu Ramachandran Nair ( Sarath Kottackupurathu Sasikumar)- 342\n5. \u2060Amrutha(Reny Mohan) -381\n6. \u2060Roniya Valookaran -313\n7. \u2060Manju Josey - 299\n8. \u2060Neethu Diju -352\n9. Swathy (Pirom Highles)-452", "audio_tracks": "1. Humma Humma ( beats)\n2.Kaantha Njanum Varaam\n3. Peelings\n4.Shararat", "email1": "pinkyrosewilson11@gmail.com", "contact": "0469585400", "can_form_group": "Yes"}, {"name": "Benny Raphael Kizhavana", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Christiano John Benny - 9yrs - Boy - 233", "audio_tracks": "", "email1": "marydita@gmail.com", "contact": "0468338376", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Vinod Abraham", "category": "Other", "program_name": "Duet", "duration": "5mts", "participants": "Vinod , Shyni", "audio_tracks": "Will update", "email1": "vinshy2007@gmail.com", "contact": "0425883727", "can_form_group": "Yes"}, {"name": "Jaimy Davis", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Jake Eraly and Luke Eraly. Membership No: 445", "audio_tracks": "", "email1": "jaimydvs@gmail.com", "contact": "0423955425", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Manju Bose", "category": "Group Dance", "program_name": "Dazzling Divas Junior ", "duration": "5 minutes ", "participants": "", "audio_tracks": "", "email1": "bose.manju@gmail.com", "contact": "0469934337", "can_form_group": "Yes"}, {"name": "Hinso", "category": "Other", "program_name": "Fashion Show ", "duration": "", "participants": "Hinso", "audio_tracks": "", "email1": "hinsojose@googlemail.com", "contact": "0451009673", "can_form_group": "Yes"}, {"name": "Swathi Komattil ", "category": "Group Dance", "program_name": "", "duration": "", "participants": "6", "audio_tracks": "", "email1": "swathi.komatil@gmail.com", "contact": "0424940271", "can_form_group": "Yes"}, {"name": "Pradeep k komattil ", "category": "Group Song", "program_name": "Group song", "duration": "7-8 mins.", "participants": "154", "audio_tracks": "Will be sent. ", "email1": "pradeep16komattil@gmail.com", "contact": "0402549175", "can_form_group": "Yes"}, {"name": "David Michael Wilson", "category": "Group Dance", "program_name": "", "duration": "", "participants": "438", "audio_tracks": "", "email1": "ajituttu@gmail.com", "contact": "0416538661", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "Manoj Guruvayoor", "category": "Group Song", "program_name": "Group song", "duration": "8 minutes", "participants": "Manoj Guruvayoor 139", "audio_tracks": "yes", "email1": "manojguruvayoor10@gmail.com", "contact": "0412743834", "can_form_group": "Yes"}, {"name": "Nancy George", "category": "Group Dance", "program_name": "", "duration": "", "participants": "Nancy George, Evaine Eliza (11 years)and Estelle Anna (6 years)", "audio_tracks": "", "email1": "nancyvijok@gmail.com", "contact": "0493572113", "can_form_group": "No, I need committee's help to identify a group"}, {"name": "HARRY Kakkassery ", "category": "Other", "program_name": "Malayalam melodies", "duration": "5 minutes ", "participants": "Matthew Kakkassery- 305\nRachel Anish\nEthan Anish \nAnish John\nHarry Kakkassery ", "audio_tracks": "This is a band, so no audio track, they play instruments and singing", "email1": "harrychacko@gmail.com", "contact": "0469145085", "can_form_group": "Yes"}, {"name": "Bindhu George", "category": "Group Song", "program_name": "Duet Song", "duration": "5mins", "participants": "410, Ann Philip / Irene Philip", "audio_tracks": "", "email1": "bindususanphilip@gmail.com", "contact": "0413326819", "can_form_group": "Yes"}];
+
+const COORDINATORS = ["Sandeep", "Payal", "Hans", "Manoj"];
+const ADMIN_PRESETS = ["Welcome speech", "Presidential address", "Maveli / Chendamelam", "Vote of thanks", "Break / intermission", "Custom…"];
+
+function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}
+
+function buildPrograms(){
+  return RAW_PROGRAMS.map((r, idx) => {
+    const hasName = r.program_name && r.program_name.trim().length > 0;
+    const displayName = hasName ? r.program_name.trim() : 'Pending — name not yet finalised';
+    const id = 'prog_' + idx;
+    const canFormGroup = (r.can_form_group || '').trim();
+    const groupConfirmed = canFormGroup.toLowerCase().startsWith('yes') ? 'Y' : (canFormGroup ? 'N' : '');
+    return {
+      id,
+      submitter: r.name.trim(),
+      submitterEmail: (r.email1 || '').trim(),
+      submitterPhone: (r.contact || '').trim(),
+      category: r.category.trim() || 'Other',
+      programName: displayName,
+      isPending: !hasName,
+      durationRaw: r.duration.trim(),
+      participants: r.participants.trim(),
+      audioTracks: r.audio_tracks.trim(),
+      coordinator: '',
+      timing: '',
+      groupConfirmed,
+      inputsReceived: 'N'
+    };
+  });
+}
+
+let state = {
+  programs: [],
+  sequence: [],
+  sponsors: [],
+  participants: {},
+  loaded: false
+};
+
+const STORAGE_KEY_PROGRAMS = 'kalasandhya_programs_v1';
+const STORAGE_KEY_SEQUENCE = 'kalasandhya_sequence_v1';
+const STORAGE_KEY_SPONSORS = 'kalasandhya_sponsors_v1';
+const STORAGE_KEY_PARTICIPANTS = 'kalasandhya_participants_v1';
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// Data layer: Firebase Firestore when configured (live multi-device sync),
+// falling back to browser localStorage (this device/browser only) if the
+// firebaseConfig above still has placeholder values.
+let unsubPrograms = null;
+let unsubSequence = null;
+let unsubSponsors = null;
+let unsubParticipants = null;
+let suppressNextProgramsSnapshot = false;
+let suppressNextSequenceSnapshot = false;
+let suppressNextSponsorsSnapshot = false;
+let suppressNextParticipantsSnapshot = false;
+
+async function loadState(){
+  if(firebaseReady){
+    await loadStateFirebase();
+  } else {
+    loadStateLocal();
+  }
+}
+
+// Backfills any fields that didn't exist yet when older data was cached
+// (e.g. earlier sessions before submitterEmail/submitterPhone existed),
+// so a schema change here never breaks a returning visitor's saved data.
+function migratePrograms(cached){
+  const fresh = buildPrograms();
+  const freshById = new Map(fresh.map(p=>[p.id, p]));
+  let changed = false;
+  const merged = cached.map(p=>{
+    const defaults = freshById.get(p.id);
+    if(!defaults) return p;
+    const filled = { ...defaults, ...p };
+    if(JSON.stringify(filled) !== JSON.stringify(p)) changed = true;
+    return filled;
+  });
+  return { merged, changed };
+}
+
+function loadStateLocal(){
+  let programs = null, sequence = null, sponsors = null, participants = null;
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_PROGRAMS);
+    if(raw) programs = JSON.parse(raw);
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_SEQUENCE);
+    if(raw) sequence = JSON.parse(raw);
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_SPONSORS);
+    if(raw) sponsors = JSON.parse(raw);
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_PARTICIPANTS);
+    if(raw) participants = JSON.parse(raw);
+  }catch(e){}
+
+  if(!programs){
+    programs = buildPrograms();
+    saveProgramsRemote(programs);
+  } else {
+    const { merged, changed } = migratePrograms(programs);
+    programs = merged;
+    if(changed) saveProgramsRemote(programs);
+  }
+  state.programs = programs;
+  state.sequence = sequence || [];
+  state.sponsors = sponsors || [];
+  state.participants = participants || {};
+  state.loaded = true;
+}
+
+function loadStateFirebase(){
+  return new Promise((resolve)=>{
+    let progLoaded = false;
+    let seqLoaded = false;
+    let sponsorsLoaded = false;
+    let participantsLoaded = false;
+    let resolved = false;
+    function maybeResolve(){
+      if(progLoaded && seqLoaded && sponsorsLoaded && participantsLoaded && !resolved){
+        resolved = true;
+        state.loaded = true;
+        resolve();
+      }
+    }
+
+    unsubPrograms = onSnapshot(DOC_PROGRAMS, (snap)=>{
+      if(suppressNextProgramsSnapshot){ suppressNextProgramsSnapshot = false; }
+      else if(snap.exists() && snap.data().items){
+        const { merged, changed } = migratePrograms(snap.data().items);
+        state.programs = merged;
+        if(changed) saveProgramsRemote(merged);
+      } else if(!progLoaded){
+        const fresh = buildPrograms();
+        state.programs = fresh;
+        setDoc(DOC_PROGRAMS, { items: fresh });
+      }
+      progLoaded = true;
+      maybeResolve();
+      refreshActiveTab();
+    }, (err)=>{
+      console.error('Firestore programs sync error', err);
+      firebaseError = err.message || String(err);
+      showToast('Could not connect to live sync — check Firebase setup');
+      progLoaded = true;
+      maybeResolve();
+      renderFirebaseStatusBanner();
+    });
+
+    unsubSequence = onSnapshot(DOC_SEQUENCE, (snap)=>{
+      if(suppressNextSequenceSnapshot){ suppressNextSequenceSnapshot = false; }
+      else {
+        state.sequence = (snap.exists() && snap.data().items) ? snap.data().items : [];
+      }
+      seqLoaded = true;
+      maybeResolve();
+      refreshActiveTab();
+    }, (err)=>{
+      console.error('Firestore sequence sync error', err);
+      firebaseError = err.message || String(err);
+      seqLoaded = true;
+      maybeResolve();
+      renderFirebaseStatusBanner();
+    });
+
+    unsubSponsors = onSnapshot(DOC_SPONSORS, (snap)=>{
+      if(suppressNextSponsorsSnapshot){ suppressNextSponsorsSnapshot = false; }
+      else {
+        state.sponsors = (snap.exists() && snap.data().items) ? snap.data().items : [];
+      }
+      sponsorsLoaded = true;
+      maybeResolve();
+      refreshActiveTab();
+    }, (err)=>{
+      console.error('Firestore sponsors sync error', err);
+      firebaseError = err.message || String(err);
+      sponsorsLoaded = true;
+      maybeResolve();
+      renderFirebaseStatusBanner();
+    });
+
+    unsubParticipants = onSnapshot(DOC_PARTICIPANTS, (snap)=>{
+      if(suppressNextParticipantsSnapshot){ suppressNextParticipantsSnapshot = false; }
+      else {
+        state.participants = (snap.exists() && snap.data().items) ? snap.data().items : {};
+      }
+      participantsLoaded = true;
+      maybeResolve();
+      refreshActiveTab();
+    }, (err)=>{
+      console.error('Firestore participants sync error', err);
+      firebaseError = err.message || String(err);
+      participantsLoaded = true;
+      maybeResolve();
+      renderFirebaseStatusBanner();
+    });
+
+    setTimeout(()=>{ if(!resolved){ resolved = true; state.loaded = true; resolve(); } }, 4000);
+  });
+}
+
+function refreshActiveTab(){
+  updateCounts();
+  const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
+  if(activeTab==='programs-needed') renderProgramsNeededTab();
+  if(activeTab==='contacts') renderContactsRows();
+  if(activeTab==='participants') renderParticipantsTab();
+  if(activeTab==='sponsors') renderSponsorsTab();
+  if(activeTab==='sequence') renderSequenceTab();
+  if(activeTab==='final') renderFinalTab();
+}
+
+let saveProgramsTimer = null;
+function saveProgramsRemote(programs){
+  if(firebaseReady){
+    suppressNextProgramsSnapshot = true;
+    setDoc(DOC_PROGRAMS, { items: programs }).catch(e=>{
+      console.error('save programs failed', e);
+      showToast('Could not save — check your connection');
+    });
+  } else {
+    try{ localStorage.setItem(STORAGE_KEY_PROGRAMS, JSON.stringify(programs)); }
+    catch(e){ console.error('save programs failed', e); }
+  }
+}
+function saveProgramsDebounced(){
+  clearTimeout(saveProgramsTimer);
+  saveProgramsTimer = setTimeout(()=>saveProgramsRemote(state.programs), 400);
+}
+function saveSequenceRemote(){
+  if(firebaseReady){
+    suppressNextSequenceSnapshot = true;
+    setDoc(DOC_SEQUENCE, { items: state.sequence }).catch(e=>{
+      console.error('save sequence failed', e);
+      showToast('Could not save — check your connection');
+    });
+  } else {
+    try{ localStorage.setItem(STORAGE_KEY_SEQUENCE, JSON.stringify(state.sequence)); }
+    catch(e){ console.error('save sequence failed', e); }
+  }
+}
+function saveSponsorsRemote(){
+  if(firebaseReady){
+    suppressNextSponsorsSnapshot = true;
+    setDoc(DOC_SPONSORS, { items: state.sponsors }).catch(e=>{
+      console.error('save sponsors failed', e);
+      showToast('Could not save — check your connection');
+    });
+  } else {
+    try{ localStorage.setItem(STORAGE_KEY_SPONSORS, JSON.stringify(state.sponsors)); }
+    catch(e){ console.error('save sponsors failed', e); }
+  }
+}
+function saveParticipantsRemote(){
+  if(firebaseReady){
+    suppressNextParticipantsSnapshot = true;
+    setDoc(DOC_PARTICIPANTS, { items: state.participants }).catch(e=>{
+      console.error('save participants failed', e);
+      showToast('Could not save — check your connection');
+    });
+  } else {
+    try{ localStorage.setItem(STORAGE_KEY_PARTICIPANTS, JSON.stringify(state.participants)); }
+    catch(e){ console.error('save participants failed', e); }
+  }
+}
+
+// ===================== POOKALAM RING SVG =====================
+function renderPookalamRing(){
+  const svg = document.getElementById('ringTop');
+  const colors = ['#E8943A','#7A1F2B','#C7972A','#FBF4E6','#E8943A','#C7972A'];
+  let html = '';
+  const w = 1200, h = 64;
+  const cy = 0;
+  for(let ring=0; ring<3; ring++){
+    const r = 30 + ring*14;
+    const color = colors[ring % colors.length];
+    const n = 26 - ring*4;
+    for(let i=0;i<n;i++){
+      const angle = (i/n) * Math.PI;
+      const spacing = w / n;
+      const x = i*spacing + spacing/2;
+      const yOffset = Math.sin(angle*0)*0;
+      html += `<circle cx="${x}" cy="${10+ring*16}" r="${5-ring}" fill="${color}" opacity="${0.85 - ring*0.15}"/>`;
+    }
+  }
+  // simple repeating petal motif instead (cleaner)
+  html = '';
+  const petalColors = ['#E8943A','#FBF4E6','#7A1F2B','#C7972A'];
+  const spacing = 46;
+  const count = Math.ceil(w/spacing)+1;
+  for(let i=0;i<count;i++){
+    const x = i*spacing;
+    const c1 = petalColors[i%4];
+    html += `<circle cx="${x}" cy="14" r="6" fill="${c1}" opacity="0.9"/>`;
+    html += `<circle cx="${x+spacing/2}" cy="34" r="9" fill="${petalColors[(i+1)%4]}" opacity="0.85"/>`;
+    html += `<circle cx="${x}" cy="52" r="4" fill="${petalColors[(i+2)%4]}" opacity="0.7"/>`;
+  }
+  svg.innerHTML = html;
+}
+
+// ===================== TABS =====================
+function initTabs(){
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      ['programs-confirmed','programs-needed','contacts','participants','sponsors','sequence','final'].forEach(t=>{
+        document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
+      });
+      if(tab==='programs-confirmed') renderProgramsConfirmedTab();
+      if(tab==='programs-needed') renderProgramsNeededTab();
+      if(tab==='contacts') renderContactsTab();
+      if(tab==='participants') renderParticipantsTab();
+      if(tab==='sponsors') renderSponsorsTab();
+      if(tab==='sequence') renderSequenceTab();
+      if(tab==='final') renderFinalTab();
+    });
+  });
+}
+
+// ===================== PROGRAMS TABS =====================
+let confirmedFilters = { search:'', category:'', status:'' };
+let neededFilters = { search:'', category:'', status:'' };
+
+function getDedupedContacts(){
+  const map = new Map();
+  state.programs.forEach(p=>{
+    const submitterEmail = p.submitterEmail || '';
+    const submitterPhone = p.submitterPhone || '';
+    const emailKey = submitterEmail.trim().toLowerCase();
+    const nameKey = (p.submitter || '').trim().toLowerCase();
+    const key = emailKey || nameKey;
+    if(!key) return;
+    if(!map.has(key)){
+      map.set(key, {
+        name: (p.submitter || '').trim(),
+        email: submitterEmail.trim(),
+        phone: submitterPhone.trim(),
+        programs: []
+      });
+    }
+    map.get(key).programs.push(p.programName);
+  });
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+function updateCounts(){
+  const confirmed = state.programs.filter(p=>p.groupConfirmed==='Y').length;
+  const needed = state.programs.length - confirmed;
+  document.getElementById('countProgramsConfirmed').textContent = confirmed;
+  document.getElementById('countProgramsNeeded').textContent = needed;
+  document.getElementById('countContacts').textContent = getDedupedContacts().length;
+  document.getElementById('countParticipants').textContent = Object.values(state.participants).reduce((sum, list) => sum + list.length, 0);
+  document.getElementById('countSponsors').textContent = state.sponsors.length;
+  document.getElementById('countFinal').textContent = state.sequence.length;
+}
+
+const CATEGORIES = ['Group Dance', 'Group Song', 'Thiruvathirakali', 'Other'];
+
+const categoryMeta = {
+  'Group Dance': { icon: '<circle cx="12" cy="4" r="1.6"/><path d="M12 5.6v4.4"/><path d="M10 10l-5 2.5"/><path d="M14 10l5 -2"/><path d="M12 10l-3 9"/><path d="M12 10l3 9"/>', color: 'coral' },
+  'Group Song': { icon: '<path d="M9 19a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z"/><path d="M11 17V5l8 -1.5"/><path d="M19 13a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z"/>', color: 'teal' },
+  'Thiruvathirakali': { icon: '<path d="M9 21v-9"/><path d="M9 12c0 -5 1.5 -8 3 -9c1.5 1 3 4 3 9"/><path d="M6 21h6"/><ellipse cx="9" cy="12" rx="3" ry="1.4"/>', color: 'amber' },
+  'Other': { icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>', color: 'purple' }
+};
+const defaultCategoryMeta = { icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>', color: 'gray' };
+
+function buildCategoryGrid(programs){
+  const counts = {};
+  programs.forEach(p=>{ counts[p.category] = (counts[p.category]||0) + 1; });
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cat,count])=>{
+    const meta = categoryMeta[cat] || defaultCategoryMeta;
+    return `
+      <div class="category-card cc-${meta.color}">
+        <svg class="cc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${meta.icon}</svg>
+        <div class="cc-count">${count}</div>
+        <div class="cc-label">${escapeHtml(cat)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderProgramsConfirmedTab(){
+  renderProgramsTabShell({
+    rootId: 'tab-programs-confirmed',
+    tbodyId: 'programsConfirmedTbody',
+    searchId: 'searchInputConfirmed',
+    categoryFilterId: 'categoryFilterConfirmed',
+    statusFilterId: 'statusFilterConfirmed',
+    emptyStateId: 'programsConfirmedEmptyState',
+    filters: confirmedFilters,
+    groupValue: 'Y',
+    renderRows: renderProgramsConfirmedRows
+  });
+}
+
+function renderProgramsNeededTab(){
+  renderProgramsTabShell({
+    rootId: 'tab-programs-needed',
+    tbodyId: 'programsNeededTbody',
+    searchId: 'searchInputNeeded',
+    categoryFilterId: 'categoryFilterNeeded',
+    statusFilterId: 'statusFilterNeeded',
+    emptyStateId: 'programsNeededEmptyState',
+    filters: neededFilters,
+    groupValue: 'N',
+    renderRows: renderProgramsNeededRows
+  });
+}
+
+function programsForGroupValue(groupValue){
+  return groupValue === 'Y'
+    ? state.programs.filter(p=>p.groupConfirmed === 'Y')
+    : state.programs.filter(p=>p.groupConfirmed !== 'Y');
+}
+
+function renderProgramsTabShell(cfg){
+  const root = document.getElementById(cfg.rootId);
+  const scoped = programsForGroupValue(cfg.groupValue);
+  const categoryCards = buildCategoryGrid(scoped);
+
+  let noteHtml;
+  if(firebaseReady){
+    noteHtml = `<div style="background:#EEF6EE;border:1px solid #BFD8C2;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:var(--green-dark);display:flex;align-items:center;gap:8px;">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>
+      Live sync is on — every committee member sees the same data in real time.
+    </div>`;
+  } else {
+    noteHtml = `<div style="background:#FBF1E3;border:1px solid #E8C9A0;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:var(--marigold-dark);display:flex;align-items:center;gap:8px;">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 9h.01M11 12h1v4h1"/></svg>
+      Data is saved in this browser only. Use Export / Import on the final tab to move data between devices, or add your Firebase config for live sync.
+    </div>`;
+  }
+
+  root.innerHTML = `
+    <div class="category-grid">${categoryCards}</div>
+    ${noteHtml}
+    <div class="toolbar">
+      <input type="text" class="search-input" id="${cfg.searchId}" placeholder="Search by program, performer..." value="${escapeHtml(cfg.filters.search)}">
+      <select class="filter-select" id="${cfg.categoryFilterId}">
+        <option value="">All categories</option>
+      </select>
+      <select class="filter-select" id="${cfg.statusFilterId}">
+        <option value="">All statuses</option>
+        <option value="Y">Inputs received</option>
+        <option value="N">Inputs pending</option>
+        <option value="pending-name">Name pending</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="program-table">
+      <thead>
+        <tr>
+          ${cfg.groupValue === 'N' ? '' : '<th style="width:18%;">Program</th>'}
+          <th style="width:${cfg.groupValue === 'N' ? '24%' : '17%'};">Notes</th>
+          <th style="width:${cfg.groupValue === 'N' ? '13%' : '11%'};">Category</th>
+          <th style="width:${cfg.groupValue === 'N' ? '15%' : '12%'};">Program lead</th>
+          <th style="width:${cfg.groupValue === 'N' ? '14%' : '11%'};">Program coordinator</th>
+          <th style="width:${cfg.groupValue === 'N' ? '10%' : '8%'};">Group</th>
+          <th style="width:${cfg.groupValue === 'N' ? '11%' : '9%'};">Inputs received</th>
+        </tr>
+      </thead>
+      <tbody id="${cfg.tbodyId}"></tbody>
+    </table>
+    </div>
+    <div id="${cfg.emptyStateId}" style="display:none;" class="empty-state">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 16.5a6 6 0 1 0 -6 -6M21 21l-3.5 -3.5M3 3l18 18"/></svg>
+      <p>No programs match your filters</p>
+    </div>
+  `;
+
+  const categories = [...new Set(scoped.map(p=>p.category))];
+  const catSelect = document.getElementById(cfg.categoryFilterId);
+  categories.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if(c===cfg.filters.category) opt.selected = true;
+    catSelect.appendChild(opt);
+  });
+  document.getElementById(cfg.statusFilterId).value = cfg.filters.status;
+
+  document.getElementById(cfg.searchId).addEventListener('input', e=>{
+    cfg.filters.search = e.target.value;
+    cfg.renderRows();
+  });
+  document.getElementById(cfg.categoryFilterId).addEventListener('change', e=>{
+    cfg.filters.category = e.target.value;
+    cfg.renderRows();
+  });
+  document.getElementById(cfg.statusFilterId).addEventListener('change', e=>{
+    cfg.filters.status = e.target.value;
+    cfg.renderRows();
+  });
+
+  cfg.renderRows();
+}
+
+function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
+  const tbody = document.getElementById(tbodyId);
+  if(!tbody) return;
+  const q = filters.search.toLowerCase();
+  const scoped = programsForGroupValue(groupValue);
+  const filtered = scoped.filter(p=>{
+    if(filters.category && p.category !== filters.category) return false;
+    if(filters.status === 'Y' && p.inputsReceived !== 'Y') return false;
+    if(filters.status === 'N' && p.inputsReceived !== 'N') return false;
+    if(filters.status === 'pending-name' && !p.isPending) return false;
+    if(q && groupValue !== 'N' && !(p.programName.toLowerCase().includes(q) || p.submitter.toLowerCase().includes(q))) return false;
+    if(q && groupValue === 'N' && !p.submitter.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const emptyEl = document.getElementById(emptyStateId);
+  if(emptyEl) emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
+
+  tbody.innerHTML = filtered.map(p=>{
+    const catClass = 'cat-' + p.category.replace(/\s+/g,'-');
+    const nameClass = p.isPending ? 'pname pending' : 'pname';
+    return `
+      <tr data-id="${p.id}">
+        ${groupValue === 'N' ? '' : `<td data-label="Program">
+          <div class="${nameClass}">${escapeHtml(p.programName)}</div>
+        </td>`}
+        <td data-label="Notes">
+          ${p.participants ? `<div class="psub">${escapeHtml(truncate(p.participants,60))}</div>` : ''}
+          ${p.audioTracks ? `<div class="psub">Audio: ${escapeHtml(truncate(p.audioTracks,50))}</div>` : ''}
+          ${(!p.participants && !p.audioTracks) ? '<span class="psub">—</span>' : ''}
+        </td>
+        <td data-label="Category">
+          <select class="category-select cat-select-${catClass.replace('cat-','')}" data-field="category" data-id="${p.id}">
+            ${CATEGORIES.map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </td>
+        <td data-label="Program lead">
+          <div style="font-size:13px;font-weight:600;">${escapeHtml(p.submitter)}</div>
+        </td>
+        <td data-label="Coordinator">
+          <select class="coord-select" data-field="coordinator" data-id="${p.id}">
+            <option value="">— assign —</option>
+            ${COORDINATORS.map(c=>`<option value="${c}" ${p.coordinator===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </td>
+        <td data-label="Group">
+          <div class="yn-toggle">
+            <button class="yes ${p.groupConfirmed==='Y'?'active':''}" data-field="groupConfirmed" data-value="Y" data-id="${p.id}">Y</button>
+            <button class="no ${p.groupConfirmed==='N'?'active':''}" data-field="groupConfirmed" data-value="N" data-id="${p.id}">N</button>
+          </div>
+        </td>
+        <td data-label="Inputs received">
+          <div class="yn-toggle">
+            <button class="yes ${p.inputsReceived==='Y'?'active':''}" data-field="inputsReceived" data-value="Y" data-id="${p.id}">Y</button>
+            <button class="no ${p.inputsReceived==='N'?'active':''}" data-field="inputsReceived" data-value="N" data-id="${p.id}">N</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.querySelectorAll('select.coord-select').forEach(el=>{
+    el.addEventListener('change', onFieldChange);
+  });
+  tbody.querySelectorAll('select.category-select').forEach(el=>{
+    el.addEventListener('change', e=>{
+      onFieldChange(e);
+      renderBothProgramsTabsIfVisible();
+    });
+  });
+  tbody.querySelectorAll('.yn-toggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      const field = btn.dataset.field;
+      const val = btn.dataset.value;
+      updateProgram(id, field, val);
+      renderBothProgramsTabsIfVisible();
+    });
+  });
+}
+
+function renderProgramsConfirmedRows(){
+  renderProgramRowsInto('programsConfirmedTbody', 'programsConfirmedEmptyState', confirmedFilters, 'Y');
+}
+function renderProgramsNeededRows(){
+  renderProgramRowsInto('programsNeededTbody', 'programsNeededEmptyState', neededFilters, 'N');
+}
+
+function renderBothProgramsTabsIfVisible(){
+  const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if(activeTab === 'programs-confirmed') renderProgramsConfirmedTab();
+  if(activeTab === 'programs-needed') renderProgramsNeededTab();
+  updateCounts();
+}
+
+function onFieldChange(e){
+  const id = e.target.dataset.id;
+  const field = e.target.dataset.field;
+  const value = e.target.value;
+  updateProgram(id, field, value);
+}
+
+function updateProgram(id, field, value){
+  const p = state.programs.find(p=>p.id===id);
+  if(!p) return;
+  p[field] = value;
+  saveProgramsDebounced();
+}
+
+function truncate(s, n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function escapeHtml(s){
+  if(s==null) return '';
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===================== PROGRAM CONTACTS TAB =====================
+let contactsSearch = '';
+let contactsSort = 'asc';
+
+function renderContactsTab(){
+  const root = document.getElementById('tab-contacts');
+  const contacts = getDedupedContacts();
+
+  root.innerHTML = `
+    <div class="stat-pills">
+      <div class="stat-pill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg> <b>${contacts.length}</b> unique contacts</div>
+      <div class="stat-pill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg> <b>${state.programs.length}</b> program entries</div>
+    </div>
+    <div class="toolbar">
+      <input type="text" class="search-input" id="contactsSearchInput" placeholder="Search by name, email, phone..." value="${escapeHtml(contactsSearch)}">
+      <button class="btn-secondary" id="sortContactsBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4 -4l4 4"/><path d="M7 4v16"/><path d="M21 16l-4 4l-4 -4"/><path d="M17 4v16"/></svg> <span id="sortContactsLabel">${contactsSort === 'asc' ? 'A to Z' : 'Z to A'}</span>
+      </button>
+      <button class="btn-secondary" id="exportContactsBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 11l5 5l5 -5M12 4v12"/></svg> Export CSV
+      </button>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="program-table">
+      <thead>
+        <tr>
+          <th style="width:36%;">Name</th>
+          <th style="width:38%;">Email</th>
+          <th style="width:26%;">Phone</th>
+        </tr>
+      </thead>
+      <tbody id="contactsTbody"></tbody>
+    </table>
+    </div>
+    <div id="contactsEmptyState" style="display:none;" class="empty-state">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 16.5a6 6 0 1 0 -6 -6M21 21l-3.5 -3.5M3 3l18 18"/></svg>
+      <p>No contacts match your search</p>
+    </div>
+  `;
+
+  document.getElementById('contactsSearchInput').addEventListener('input', e=>{
+    contactsSearch = e.target.value;
+    renderContactsRows();
+  });
+  document.getElementById('sortContactsBtn').addEventListener('click', ()=>{
+    contactsSort = contactsSort === 'asc' ? 'desc' : 'asc';
+    document.getElementById('sortContactsLabel').textContent = contactsSort === 'asc' ? 'A to Z' : 'Z to A';
+    renderContactsRows();
+  });
+  document.getElementById('exportContactsBtn').addEventListener('click', exportContactsCsv);
+
+  renderContactsRows();
+}
+
+function renderContactsRows(){
+  const tbody = document.getElementById('contactsTbody');
+  if(!tbody) return;
+  const q = contactsSearch.toLowerCase();
+  const contacts = getDedupedContacts()
+    .filter(c=>{
+      if(!q) return true;
+      return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q);
+    })
+    .sort((a,b)=> contactsSort === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+
+  document.getElementById('contactsEmptyState').style.display = contacts.length === 0 ? 'block' : 'none';
+
+  tbody.innerHTML = contacts.map(c=>`
+    <tr>
+      <td data-label="Name"><div class="pname">${escapeHtml(c.name)}</div></td>
+      <td data-label="Email">${c.email ? `<a href="mailto:${escapeHtml(c.email)}" style="color:var(--maroon);text-decoration:none;font-size:13px;">${escapeHtml(c.email)}</a>` : '<span class="psub">—</span>'}</td>
+      <td data-label="Phone" style="font-size:13px;">${c.phone ? escapeHtml(c.phone) : '<span class="psub">—</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+function exportContactsCsv(){
+  const contacts = [...getDedupedContacts()].sort((a,b)=> contactsSort === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  const rows = [['Name','Email','Phone']];
+  contacts.forEach(c=>rows.push([c.name, c.email, c.phone]));
+  const csv = rows.map(r=>r.map(cell=>'"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kalasandhya-contacts-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Contacts exported');
+}
+
+// ===================== PARTICIPANTS TAB =====================
+let selectedParticipantProgramId = '';
+
+function getConfirmedProgramsForParticipants(){
+  return state.programs.filter(p=>p.groupConfirmed==='Y');
+}
+
+function renderParticipantsTab(){
+  const root = document.getElementById('tab-participants');
+  const eligible = getConfirmedProgramsForParticipants()
+    .slice()
+    .sort((a,b)=>a.programName.localeCompare(b.programName));
+
+  if(selectedParticipantProgramId && !eligible.some(p=>p.id===selectedParticipantProgramId)){
+    selectedParticipantProgramId = '';
+  }
+
+  root.innerHTML = `
+    <div class="participant-picker">
+      <select id="participantProgramSelect">
+        <option value="">— select a program —</option>
+        ${eligible.map(p=>`<option value="${p.id}" ${p.id===selectedParticipantProgramId?'selected':''}>${escapeHtml(p.programName)} (${escapeHtml(p.submitter)})</option>`).join('')}
+      </select>
+    </div>
+    <div id="participantPanelWrap"></div>
+  `;
+
+  document.getElementById('participantProgramSelect').addEventListener('change', e=>{
+    selectedParticipantProgramId = e.target.value;
+    renderParticipantPanel();
+  });
+
+  renderParticipantPanel();
+}
+
+function renderParticipantPanel(){
+  const wrap = document.getElementById('participantPanelWrap');
+  if(!wrap) return;
+
+  if(!selectedParticipantProgramId){
+    wrap.innerHTML = `
+      <div class="no-program-selected">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:30px;height:30px;color:var(--line);"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>
+        <p>Pick a program above to add its participants.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const program = state.programs.find(p=>p.id===selectedParticipantProgramId);
+  if(!program){
+    selectedParticipantProgramId = '';
+    renderParticipantsTab();
+    return;
+  }
+
+  const list = state.participants[program.id] || [];
+  const hasOriginalNote = program.participants && program.participants.trim().length > 0;
+
+  wrap.innerHTML = `
+    <div class="participant-panel">
+      <div class="participant-panel-header">
+        <h3>${escapeHtml(program.programName)}</h3>
+        <span class="pcount">${list.length} participant${list.length===1?'':'s'}</span>
+      </div>
+      <div class="psub" style="margin-bottom:2px;">${escapeHtml(program.category)} · Lead: ${escapeHtml(program.submitter)}</div>
+      ${hasOriginalNote ? `
+        <div class="participant-original-note" id="originalNoteBox">
+          From the original sign-up: "${escapeHtml(program.participants)}"
+          <button id="dismissOriginalNote">Dismiss</button>
+        </div>
+      ` : ''}
+      <div class="participant-add-row">
+        <input type="text" class="pname-input" id="participantNameInput" placeholder="Participant name">
+        <input type="text" class="pmember-input" id="participantMemberInput" placeholder="Membership number">
+        <button id="addParticipantBtn">+ Add</button>
+      </div>
+      <div class="participant-list" id="participantListWrap"></div>
+    </div>
+  `;
+
+  const dismissBtn = document.getElementById('dismissOriginalNote');
+  if(dismissBtn){
+    dismissBtn.addEventListener('click', ()=>{
+      program.participants = '';
+      saveProgramsDebounced();
+      document.getElementById('originalNoteBox').remove();
+    });
+  }
+
+  document.getElementById('addParticipantBtn').addEventListener('click', addParticipant);
+  document.getElementById('participantMemberInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') addParticipant();
+  });
+  document.getElementById('participantNameInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') document.getElementById('participantMemberInput').focus();
+  });
+
+  renderParticipantList();
+}
+
+function addParticipant(){
+  const nameInput = document.getElementById('participantNameInput');
+  const memberInput = document.getElementById('participantMemberInput');
+  const name = nameInput.value.trim();
+  const memberNumber = memberInput.value.trim();
+  if(!name && !memberNumber){ showToast('Enter a name or membership number'); return; }
+  if(!state.participants[selectedParticipantProgramId]){
+    state.participants[selectedParticipantProgramId] = [];
+  }
+  state.participants[selectedParticipantProgramId].push({
+    id: 'participant_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    name,
+    memberNumber
+  });
+  saveParticipantsRemote();
+  nameInput.value = '';
+  memberInput.value = '';
+  nameInput.focus();
+  updateCounts();
+  renderParticipantPanel();
+}
+
+function removeParticipant(programId, id){
+  if(!state.participants[programId]) return;
+  state.participants[programId] = state.participants[programId].filter(p=>p.id !== id);
+  saveParticipantsRemote();
+  updateCounts();
+  renderParticipantPanel();
+}
+
+function updateParticipantField(programId, id, field, value){
+  const list = state.participants[programId];
+  if(!list) return;
+  const p = list.find(p=>p.id===id);
+  if(!p) return;
+  p[field] = value.trim();
+  saveParticipantsRemote();
+}
+
+function renderParticipantList(){
+  const wrap = document.getElementById('participantListWrap');
+  if(!wrap) return;
+  const list = state.participants[selectedParticipantProgramId] || [];
+
+  if(list.length === 0){
+    wrap.innerHTML = `<div class="participant-empty-row">No participants added yet.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map((p, idx)=>`
+    <div class="participant-row">
+      <span class="pnum">${idx+1}</span>
+      <div class="pinfo pinfo-grid">
+        <span class="pfield pfield-name ${p.name ? '' : 'pfield-empty'}" data-id="${p.id}" data-field="name" tabindex="0">${p.name ? escapeHtml(p.name) : 'Add name'}</span>
+        <span class="pfield pfield-member ${p.memberNumber ? '' : 'pfield-empty'}" data-id="${p.id}" data-field="memberNumber" tabindex="0">${p.memberNumber ? escapeHtml(p.memberNumber) : 'Add membership #'}</span>
+      </div>
+      <button class="rm-btn" data-id="${p.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('.rm-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeParticipant(selectedParticipantProgramId, btn.dataset.id));
+  });
+
+  wrap.querySelectorAll('.pfield').forEach(span=>{
+    span.addEventListener('click', ()=> activateParticipantFieldEdit(span));
+    span.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') activateParticipantFieldEdit(span);
+    });
+  });
+}
+
+function activateParticipantFieldEdit(span){
+  if(span.querySelector('input')) return; // already editing
+  const id = span.dataset.id;
+  const field = span.dataset.field;
+  const list = state.participants[selectedParticipantProgramId] || [];
+  const participant = list.find(p=>p.id===id);
+  if(!participant) return;
+  const currentValue = participant[field] || '';
+  const placeholder = field === 'name' ? 'Participant name' : 'Membership number';
+
+  span.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentValue;
+  input.placeholder = placeholder;
+  input.className = 'pfield-input';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if(committed) return;
+    committed = true;
+    updateParticipantField(selectedParticipantProgramId, id, field, input.value);
+    renderParticipantList();
+  }
+  function cancel(){
+    if(committed) return;
+    committed = true;
+    renderParticipantList();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancel(); }
+  });
+}
+
+// ===================== SPONSORS TAB =====================
+const TIERS = ['Platinum', 'Gold', 'Silver', 'Bronze'];
+const tierMeta = {
+  Platinum: { color: 'platinum', icon: '<path d="M12 3l7 4v5c0 5 -3 8 -7 9c-4 -1 -7 -4 -7 -9v-5z"/>' },
+  Gold:     { color: 'gold', icon: '<circle cx="12" cy="8" r="5"/><path d="M9 12.5l-1.5 7l4.5 -2l4.5 2l-1.5 -7"/>' },
+  Silver:   { color: 'silver', icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>' },
+  Bronze:   { color: 'bronze', icon: '<circle cx="12" cy="12" r="8"/><path d="M9 12l1.8 1.8l4.2 -4.2"/>' }
+};
+
+let sponsorTierFilter = '';
+
+function renderSponsorsTab(){
+  const root = document.getElementById('tab-sponsors');
+
+  const tierCards = TIERS.map(tier=>{
+    const meta = tierMeta[tier];
+    const count = state.sponsors.filter(s=>s.tier===tier).length;
+    const isActive = sponsorTierFilter === tier;
+    return `
+      <div class="tier-card tier-${meta.color} ${isActive ? 'active' : ''}" data-tier="${tier}">
+        <svg class="tier-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${meta.icon}</svg>
+        <div class="tier-count">${count}</div>
+        <div class="tier-label">${tier}</div>
+      </div>
+    `;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="tier-grid">${tierCards}</div>
+    <div class="sponsor-form sponsor-form-extended">
+      <input type="text" id="sponsorNameInput" placeholder="Sponsor / business name">
+      <input type="text" id="sponsorContactInput" placeholder="Contact name (optional)">
+      <input type="text" id="sponsorPhoneInput" placeholder="Contact number">
+      <input type="text" id="sponsorAmountInput" placeholder="Amount ($)">
+      <select id="sponsorTierInput">
+        ${TIERS.map(t=>`<option value="${t}">${t}</option>`).join('')}
+      </select>
+      <button id="addSponsorBtn">+ Add sponsor</button>
+    </div>
+    <div id="sponsorsListWrap"></div>
+    <div id="sponsorsEmptyState" style="display:none;" class="empty-state">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg>
+      <p>No sponsors added yet. Use the form above to add one.</p>
+    </div>
+  `;
+
+  root.querySelectorAll('.tier-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const tier = card.dataset.tier;
+      sponsorTierFilter = sponsorTierFilter === tier ? '' : tier;
+      renderSponsorsTab();
+    });
+  });
+
+  document.getElementById('addSponsorBtn').addEventListener('click', addSponsor);
+  document.getElementById('sponsorNameInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') addSponsor();
+  });
+
+  renderSponsorsList();
+}
+
+function addSponsor(){
+  const nameInput = document.getElementById('sponsorNameInput');
+  const contactInput = document.getElementById('sponsorContactInput');
+  const phoneInput = document.getElementById('sponsorPhoneInput');
+  const amountInput = document.getElementById('sponsorAmountInput');
+  const tierInput = document.getElementById('sponsorTierInput');
+  const name = nameInput.value.trim();
+  if(!name){ showToast('Enter a sponsor name'); return; }
+  state.sponsors.push({
+    id: 'sponsor_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    name,
+    contact: contactInput.value.trim(),
+    phone: phoneInput.value.trim(),
+    amount: amountInput.value.trim(),
+    tier: tierInput.value
+  });
+  saveSponsorsRemote();
+  nameInput.value = '';
+  contactInput.value = '';
+  phoneInput.value = '';
+  amountInput.value = '';
+  nameInput.focus();
+  updateCounts();
+  renderSponsorsTab();
+  showToast('Added ' + name);
+}
+
+function removeSponsor(id){
+  state.sponsors = state.sponsors.filter(s=>s.id !== id);
+  saveSponsorsRemote();
+  updateCounts();
+  renderSponsorsTab();
+}
+
+function updateSponsorTier(id, tier){
+  const s = state.sponsors.find(s=>s.id===id);
+  if(!s) return;
+  s.tier = tier;
+  saveSponsorsRemote();
+  updateCounts();
+  renderSponsorsTab();
+}
+
+function updateSponsorField(id, field, value){
+  const s = state.sponsors.find(s=>s.id===id);
+  if(!s) return;
+  s[field] = value.trim();
+  saveSponsorsRemote();
+}
+
+function renderSponsorsList(){
+  const wrap = document.getElementById('sponsorsListWrap');
+  if(!wrap) return;
+  const visibleTiers = sponsorTierFilter ? [sponsorTierFilter] : TIERS;
+  const visible = state.sponsors.filter(s=>visibleTiers.includes(s.tier));
+
+  document.getElementById('sponsorsEmptyState').style.display = state.sponsors.length === 0 ? 'block' : 'none';
+
+  wrap.innerHTML = visibleTiers.map(tier=>{
+    const sponsors = state.sponsors.filter(s=>s.tier===tier);
+    if(sponsors.length === 0) return '';
+    const meta = tierMeta[tier];
+    return `
+      <div class="sponsor-section">
+        <div class="sponsor-section-header">
+          <span class="tier-dot tier-${meta.color}"></span>
+          <h4>${tier}</h4>
+          <span class="tier-tag-count">${sponsors.length}</span>
+        </div>
+        <div class="sponsor-list">
+          ${sponsors.map(s=>`
+            <div class="sponsor-row">
+              <div class="sinfo">
+                <div class="sname">${escapeHtml(s.name)}</div>
+                ${s.contact ? `<div class="scontact">${escapeHtml(s.contact)}</div>` : ''}
+              </div>
+              <span class="sfield sfield-phone ${s.phone ? '' : 'sfield-empty'}" data-id="${s.id}" data-field="phone" tabindex="0">${s.phone ? escapeHtml(s.phone) : 'Add phone'}</span>
+              <span class="sfield sfield-amount ${s.amount ? '' : 'sfield-empty'}" data-id="${s.id}" data-field="amount" tabindex="0">${s.amount ? '$' + escapeHtml(s.amount) : 'Add amount'}</span>
+              <select class="tier-select" data-id="${s.id}">
+                ${TIERS.map(t=>`<option value="${t}" ${s.tier===t?'selected':''}>${t}</option>`).join('')}
+              </select>
+              <button class="rm-btn" data-id="${s.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  wrap.querySelectorAll('select.tier-select').forEach(sel=>{
+    sel.addEventListener('change', ()=> updateSponsorTier(sel.dataset.id, sel.value));
+  });
+  wrap.querySelectorAll('.rm-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeSponsor(btn.dataset.id));
+  });
+  wrap.querySelectorAll('.sfield').forEach(span=>{
+    span.addEventListener('click', ()=> activateSponsorFieldEdit(span));
+    span.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') activateSponsorFieldEdit(span);
+    });
+  });
+}
+
+function activateSponsorFieldEdit(span){
+  if(span.querySelector('input')) return;
+  const id = span.dataset.id;
+  const field = span.dataset.field;
+  const s = state.sponsors.find(s=>s.id===id);
+  if(!s) return;
+  const currentValue = s[field] || '';
+  const placeholder = field === 'phone' ? 'Contact number' : 'Amount';
+
+  span.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentValue;
+  input.placeholder = placeholder;
+  input.className = 'sfield-input';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if(committed) return;
+    committed = true;
+    updateSponsorField(id, field, input.value);
+    renderSponsorsList();
+  }
+  function cancel(){
+    if(committed) return;
+    committed = true;
+    renderSponsorsList();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancel(); }
+  });
+}
+
+// ===================== SEQUENCE BUILDER TAB =====================
+let seqDragId = null;
+let seqDragType = null; // 'pool' or 'seq'
+
+function renderSequenceTab(){
+  const root = document.getElementById('tab-sequence');
+  root.innerHTML = `
+    <div class="seq-layout">
+      <div class="panel">
+        <h3>Program pool</h3>
+        <p class="panel-hint">Click + or drag a program into the running order on the right.</p>
+        <div class="admin-add-row">
+          <select id="adminPresetSelect">
+            ${ADMIN_PRESETS.map(p=>`<option value="${p}">${p}</option>`).join('')}
+          </select>
+          <input type="text" id="adminCustomInput" placeholder="Custom slot name" style="display:none;">
+          <button id="addAdminBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add slot</button>
+        </div>
+        <div class="pool-list" id="poolList"></div>
+      </div>
+      <div class="panel">
+        <h3>Running order</h3>
+        <p class="panel-hint">Drag to reorder. This becomes the final running order tab.</p>
+        <div class="seq-list" id="seqList"></div>
+      </div>
+    </div>
+  `;
+
+  const presetSelect = document.getElementById('adminPresetSelect');
+  const customInput = document.getElementById('adminCustomInput');
+  presetSelect.addEventListener('change', ()=>{
+    customInput.style.display = presetSelect.value === 'Custom…' ? 'block' : 'none';
+  });
+  document.getElementById('addAdminBtn').addEventListener('click', ()=>{
+    let label = presetSelect.value;
+    if(label === 'Custom…'){
+      label = customInput.value.trim();
+      if(!label){ showToast('Enter a slot name'); return; }
+    }
+    const item = {
+      id: 'admin_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      type: 'admin',
+      label
+    };
+    state.sequence.push(item);
+    saveSequenceRemote();
+    customInput.value = '';
+    renderSequenceTab();
+    showToast('Added "' + label + '" to running order');
+  });
+
+  renderPoolList();
+  renderSeqList();
+}
+
+function renderPoolList(){
+  const poolList = document.getElementById('poolList');
+  if(!poolList) return;
+  const inSeqIds = new Set(state.sequence.filter(s=>s.type==='program').map(s=>s.programId));
+  const available = state.programs.filter(p=>p.groupConfirmed==='Y' && !inSeqIds.has(p.id));
+
+  if(available.length === 0){
+    poolList.innerHTML = `<div class="empty-note">All confirmed programs have been added to the running order.</div>`;
+    return;
+  }
+
+  poolList.innerHTML = available.map(p=>`
+    <div class="pool-item" draggable="true" data-id="${p.id}">
+      <div class="info">
+        <div class="t">${escapeHtml(p.programName)}</div>
+        <div class="s">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}</div>
+      </div>
+      <button class="add-btn" data-id="${p.id}" aria-label="Add to running order"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+  `).join('');
+
+  poolList.querySelectorAll('.add-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      addProgramToSequence(btn.dataset.id);
+    });
+  });
+
+  poolList.querySelectorAll('.pool-item').forEach(item=>{
+    item.addEventListener('dragstart', e=>{
+      seqDragId = item.dataset.id;
+      seqDragType = 'pool';
+      item.classList.add('dragging');
+    });
+    item.addEventListener('dragend', ()=>item.classList.remove('dragging'));
+  });
+}
+
+function addProgramToSequence(programId){
+  const exists = state.sequence.some(s=>s.type==='program' && s.programId===programId);
+  if(exists) return;
+  state.sequence.push({ id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type:'program', programId });
+  saveSequenceRemote();
+  renderSequenceTab();
+}
+
+function renderSeqList(){
+  const seqList = document.getElementById('seqList');
+  if(!seqList) return;
+
+  if(state.sequence.length === 0){
+    seqList.innerHTML = `<div class="empty-note">Drag programs here, or click + on items in the pool.</div>`;
+  } else {
+    seqList.innerHTML = state.sequence.map((item, idx)=>{
+      if(item.type === 'admin'){
+        return `
+          <div class="seq-item admin-slot" draggable="true" data-id="${item.id}">
+            <span class="num">${idx+1}</span>
+            <span class="grip"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></span>
+            <div class="info">
+              <div class="t">${escapeHtml(item.label)}</div>
+              <div class="s">Admin item</div>
+            </div>
+            <button class="rm-btn" data-id="${item.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          </div>
+        `;
+      }
+      const p = state.programs.find(p=>p.id===item.programId);
+      if(!p) return '';
+      return `
+        <div class="seq-item" draggable="true" data-id="${item.id}">
+          <span class="num">${idx+1}</span>
+          <span class="grip"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></span>
+          <div class="info">
+            <div class="t">${escapeHtml(p.programName)}</div>
+            <div class="s">${escapeHtml(p.category)} · ${p.coordinator ? 'Coord: '+escapeHtml(p.coordinator) : 'No coordinator yet'}</div>
+          </div>
+          <button class="rm-btn" data-id="${item.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  seqList.querySelectorAll('.rm-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.sequence = state.sequence.filter(s=>s.id !== btn.dataset.id);
+      saveSequenceRemote();
+      renderSequenceTab();
+    });
+  });
+
+  seqList.querySelectorAll('.seq-item').forEach(item=>{
+    item.addEventListener('dragstart', e=>{
+      seqDragId = item.dataset.id;
+      seqDragType = 'seq';
+    });
+    item.addEventListener('dragover', e=>{
+      e.preventDefault();
+      item.classList.add('dragover');
+    });
+    item.addEventListener('dragleave', ()=>item.classList.remove('dragover'));
+    item.addEventListener('drop', e=>{
+      e.preventDefault();
+      item.classList.remove('dragover');
+      const targetId = item.dataset.id;
+      handleDropOnSeq(targetId);
+    });
+  });
+
+  seqList.addEventListener('dragover', e=>e.preventDefault());
+  seqList.addEventListener('drop', e=>{
+    e.preventDefault();
+    if(e.target === seqList){
+      handleDropOnSeq(null);
+    }
+  });
+}
+
+function handleDropOnSeq(targetId){
+  if(seqDragType === 'pool'){
+    const exists = state.sequence.some(s=>s.type==='program' && s.programId===seqDragId);
+    if(exists){ seqDragId=null; seqDragType=null; return; }
+    const newItem = { id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type:'program', programId: seqDragId };
+    if(targetId){
+      const idx = state.sequence.findIndex(s=>s.id===targetId);
+      state.sequence.splice(idx, 0, newItem);
+    } else {
+      state.sequence.push(newItem);
+    }
+  } else if(seqDragType === 'seq'){
+    if(targetId === seqDragId){ seqDragId=null; seqDragType=null; return; }
+    const fromIdx = state.sequence.findIndex(s=>s.id===seqDragId);
+    if(fromIdx === -1){ seqDragId=null; seqDragType=null; return; }
+    const [moved] = state.sequence.splice(fromIdx, 1);
+    if(targetId){
+      const toIdx = state.sequence.findIndex(s=>s.id===targetId);
+      state.sequence.splice(toIdx, 0, moved);
+    } else {
+      state.sequence.push(moved);
+    }
+  }
+  seqDragId = null;
+  seqDragType = null;
+  saveSequenceRemote();
+  renderSequenceTab();
+}
+
+// ===================== FINAL TAB =====================
+function renderFinalTab(){
+  const root = document.getElementById('tab-final');
+  updateCounts();
+
+  if(state.sequence.length === 0){
+    root.innerHTML = `
+      <div class="empty-state">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6h9M11 12h9M11 18h9"/></svg>
+        <p>No running order yet. Build one in the Sequence builder tab.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const rows = state.sequence.map((item, idx) => {
+    if(item.type === 'admin'){
+      return `
+        <div class="final-row admin">
+          <div class="fnum">${idx+1}</div>
+          <div class="finfo">
+            <div class="ft">${escapeHtml(item.label)}</div>
+            <div class="fs">Admin item</div>
+          </div>
+          <div class="ftiming"></div>
+          <div class="fstatus"><span class="badge-admin">Admin</span></div>
+        </div>
+      `;
+    }
+    const p = state.programs.find(p=>p.id===item.programId);
+    if(!p) return '';
+    const statusBadge = p.isPending
+      ? `<span class="badge-pending">Name pending</span>`
+      : (p.inputsReceived==='Y' ? `<span class="badge-ready">Ready</span>` : `<span class="badge-pending">Awaiting input</span>`);
+    return `
+      <div class="final-row">
+        <div class="fnum">${idx+1}</div>
+        <div class="finfo">
+          <div class="ft">${escapeHtml(p.programName)}</div>
+          <div class="fs">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>
+        </div>
+        <div class="ftiming">${escapeHtml(p.timing || p.durationRaw || '—')}</div>
+        <div class="fstatus">${statusBadge}</div>
+      </div>
+    `;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="final-header">
+      <div class="label">Kalasandhya 2026</div>
+      <h2>Final running order</h2>
+    </div>
+    <div class="actions-bar">
+      <button class="btn-secondary" id="exportBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 11l5 5l5 -5M12 4v12"/></svg> Export data</button>
+      <button class="btn-secondary" id="importBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 9l5 -5l5 5M12 4v12"/></svg> Import data</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+      <button class="btn-secondary" id="printBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg> Print</button>
+    </div>
+    <div class="panel">
+      <div class="final-list">${rows}</div>
+    </div>
+  `;
+
+  document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+  document.getElementById('exportBtn').addEventListener('click', exportData);
+  document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', importData);
+}
+
+function exportData(){
+  const payload = { programs: state.programs, sequence: state.sequence, sponsors: state.sponsors, participants: state.participants, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kalasandhya-data-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data exported');
+}
+
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const payload = JSON.parse(evt.target.result);
+      if(payload.programs) state.programs = payload.programs;
+      if(payload.sequence) state.sequence = payload.sequence;
+      if(payload.sponsors) state.sponsors = payload.sponsors;
+      if(payload.participants) state.participants = payload.participants;
+      saveProgramsRemote(state.programs);
+      saveSequenceRemote();
+      saveSponsorsRemote();
+      saveParticipantsRemote();
+      updateCounts();
+      renderFinalTab();
+      showToast('Data imported');
+    }catch(err){
+      showToast('Could not read that file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ===================== INIT =====================
+async function init(){
+  renderPookalamRing();
+  initTabs();
+  await initFirebase();
+  await loadState();
+  updateCounts();
+  renderProgramsConfirmedTab();
+  renderFirebaseStatusBanner();
+
+  // Cross-tab sync in the same browser, only relevant when running on the
+  // localStorage fallback (Firebase's onSnapshot already handles this when configured).
+  if(!firebaseReady){
+    window.addEventListener('storage', (e)=>{
+      if(e.key === STORAGE_KEY_PROGRAMS && e.newValue){
+        try{
+          state.programs = JSON.parse(e.newValue);
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
+          if(activeTab==='programs-needed') renderProgramsNeededTab();
+          if(activeTab==='contacts') renderContactsRows();
+          updateCounts();
+        }catch(err){}
+      }
+      if(e.key === STORAGE_KEY_SEQUENCE && e.newValue){
+        try{
+          state.sequence = JSON.parse(e.newValue);
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if(activeTab==='sequence') renderSequenceTab();
+          if(activeTab==='final') renderFinalTab();
+          updateCounts();
+        }catch(err){}
+      }
+      if(e.key === STORAGE_KEY_SPONSORS && e.newValue){
+        try{
+          state.sponsors = JSON.parse(e.newValue);
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if(activeTab==='sponsors') renderSponsorsTab();
+          updateCounts();
+        }catch(err){}
+      }
+      if(e.key === STORAGE_KEY_PARTICIPANTS && e.newValue){
+        try{
+          state.participants = JSON.parse(e.newValue);
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if(activeTab==='participants') renderParticipantsTab();
+          updateCounts();
+        }catch(err){}
+      }
+    });
+  }
+}
+
+// ===================== PWA: SERVICE WORKER + INSTALL PROMPT =====================
+function repositionInstallBanner(){
+  const installBanner = document.getElementById('installBanner');
+  const fbBanner = document.getElementById('firebaseStatusBanner');
+  if(!installBanner) return;
+  const fbVisible = fbBanner && getComputedStyle(fbBanner).display !== 'none';
+  installBanner.style.bottom = fbVisible ? fbBanner.offsetHeight + 'px' : '0';
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(err=>{
+      console.error('Service worker registration failed', err);
+    });
+  });
+}
+
+let deferredInstallPrompt = null;
+const INSTALL_DISMISSED_KEY = 'kalasandhya_install_dismissed_v1';
+
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if(localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true') return;
+  const banner = document.getElementById('installBanner');
+  if(banner){
+    banner.style.display = 'flex';
+    repositionInstallBanner();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const installBtn = document.getElementById('installBtn');
+  const dismissBtn = document.getElementById('dismissInstallBtn');
+  const banner = document.getElementById('installBanner');
+
+  if(installBtn){
+    installBtn.addEventListener('click', async ()=>{
+      if(!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      if(banner) banner.style.display = 'none';
+    });
+  }
+  if(dismissBtn){
+    dismissBtn.addEventListener('click', ()=>{
+      if(banner) banner.style.display = 'none';
+      try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
+    });
+  }
+});
+
+window.addEventListener('appinstalled', ()=>{
+  deferredInstallPrompt = null;
+  const banner = document.getElementById('installBanner');
+  if(banner) banner.style.display = 'none';
+});
+
+window.addEventListener('resize', ()=> repositionInstallBanner());
+
+init().catch(err=>{
+  console.error('Failed to start app', err);
+  const root = document.getElementById('tab-programs-confirmed');
+  if(root){
+    root.innerHTML = `
+      <div class="empty-state">
+        <p style="color:var(--maroon);font-weight:600;">Something went wrong loading saved data.</p>
+        <p style="margin-top:8px;">Try a hard refresh. If that doesn't help, clear this site's local storage from your browser's developer tools, or open the file in a private/incognito window to start fresh.</p>
+      </div>
+    `;
+  }
+});
+</script>
+</body>
+</html>
