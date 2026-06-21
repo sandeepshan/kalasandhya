@@ -228,6 +228,29 @@
     gap:12px;
     margin-bottom:20px;
   }
+  .sponsor-total-banner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--green-light);
+    border:1.5px solid var(--green);
+    border-radius:var(--radius-lg);
+    padding:16px 20px;
+    margin-bottom:16px;
+  }
+  .sponsor-total-banner .stb-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--green-dark);
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  .sponsor-total-banner .stb-amount{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:32px;
+    font-weight:700;
+    color:var(--green-dark);
+  }
   .tier-card{
     border-radius:var(--radius-lg);
     padding:16px 14px;
@@ -601,6 +624,7 @@
   select.cat-select-Group-Song{background:#E1ECE0;color:#2C5836;}
   select.cat-select-Thiruvathirakali{background:#F6E6C8;color:#8A6310;}
   select.cat-select-Other{background:#E7E2EE;color:#4A3D77;}
+  select.cat-select-Admin-item{background:#F1EFE8;color:#444441;}
 
   select.coord-select, input.timing-input{
     border:1.5px solid var(--line);
@@ -633,6 +657,8 @@
   }
   .yn-toggle button.yes.active{background:var(--green);color:var(--white);}
   .yn-toggle button.no.active{background:var(--maroon);color:var(--white);}
+  .yn-toggle-locked{opacity:0.55;}
+  .yn-toggle-locked button{cursor:not-allowed;}
 
   .withdraw-btn{
     border:none;
@@ -847,8 +873,22 @@
   .final-row .ftiming{
     font-size:12.5px;
     color:var(--ink-soft);
-    min-width:50px;
+    min-width:118px;
     text-align:right;
+    white-space:nowrap;
+  }
+  .final-row .ftiming-default{color:var(--marigold-dark);}
+  .ftiming-est{
+    display:inline-block;
+    margin-left:5px;
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    background:#FBF1E3;
+    color:var(--marigold-dark);
+    padding:1px 5px;
+    border-radius:5px;
   }
   .final-row .fstatus{min-width:74px;text-align:right;}
   .badge-ready{background:#E1ECE0;color:#2C5836;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
@@ -1007,6 +1047,10 @@
     .category-card, .tier-card{padding:14px 10px;}
     .cc-count, .tier-count{font-size:24px;}
 
+    /* Sponsorship total banner: stack label above amount */
+    .sponsor-total-banner{flex-direction:column;align-items:flex-start;gap:4px;padding:14px 16px;}
+    .sponsor-total-banner .stb-amount{font-size:26px;}
+
     /* Sponsor add form: stack to one column */
     .sponsor-form, .sponsor-form-extended{
       grid-template-columns:1fr;
@@ -1067,6 +1111,13 @@
     /* Final tab action buttons: full-width stack */
     .actions-bar{flex-direction:column;}
     .actions-bar button{width:100%;justify-content:center;display:flex;}
+
+    /* Final running order rows: wrap timing/status onto their own line */
+    .final-row{flex-wrap:wrap;}
+    .final-row .finfo{flex:1 1 100%;order:1;}
+    .final-row .fnum{order:0;}
+    .final-row .ftiming{order:2;min-width:0;margin-left:50px;text-align:left;}
+    .final-row .fstatus{order:3;min-width:0;text-align:left;}
 
     /* Pinned diagnostic / sync banners: don't eat the whole screen */
     .fb-status-banner{font-size:12px;padding:10px 14px;}
@@ -1256,6 +1307,35 @@ const ADMIN_PRESETS = ["Welcome speech", "Presidential address", "Maveli / Chend
 
 function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}
 
+const ADMIN_PRESET_DURATIONS_SECONDS = {
+  'Welcome speech': 3 * 60,
+  'Vote of thanks': 3 * 60,
+  'Maveli / Chendamelam': 15 * 60
+};
+
+function createAdminProgramRecord(label, runTimeSeconds){
+  return {
+    id: 'admin_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    submitter: '—',
+    submitterEmail: '',
+    submitterPhone: '',
+    category: 'Admin item',
+    programName: label,
+    isPending: false,
+    durationRaw: '',
+    participants: '',
+    audioTracks: '',
+    coordinator: '',
+    timing: '',
+    groupConfirmed: 'Y',
+    inputsReceived: 'Y',
+    withdrawn: false,
+    withdrawnAt: null,
+    runTimeSeconds: runTimeSeconds != null ? runTimeSeconds : null,
+    isAdminItem: true
+  };
+}
+
 function buildPrograms(){
   return RAW_PROGRAMS.map((r, idx) => {
     const hasName = r.program_name && r.program_name.trim().length > 0;
@@ -1279,7 +1359,8 @@ function buildPrograms(){
       groupConfirmed,
       inputsReceived: 'N',
       withdrawn: false,
-      withdrawnAt: null
+      withdrawnAt: null,
+      runTimeSeconds: null
     };
   });
 }
@@ -1342,6 +1423,27 @@ function migratePrograms(cached){
   return { merged, changed };
 }
 
+// Upgrades the old admin-item shape ({type:'admin', label}, no programId) into
+// the current shape, where every admin item is backed by a real record in
+// state.programs (so Tab 1 editing and the running order share one source of truth).
+// Mutates state.programs in place when it needs to create backing records.
+// Returns { sequence, programsChanged }.
+function migrateSequence(sequence){
+  if(!Array.isArray(sequence)) return { sequence: [], programsChanged: false };
+  let programsChanged = false;
+  const migrated = sequence.map(item=>{
+    if(item.type === 'admin' && !item.programId){
+      const presetDuration = (item.label in ADMIN_PRESET_DURATIONS_SECONDS) ? ADMIN_PRESET_DURATIONS_SECONDS[item.label] : null;
+      const adminProgram = createAdminProgramRecord(item.label || 'Admin item', presetDuration);
+      state.programs.push(adminProgram);
+      programsChanged = true;
+      return { id: item.id, type: 'admin', programId: adminProgram.id };
+    }
+    return item;
+  });
+  return { sequence: migrated, programsChanged };
+}
+
 function loadStateLocal(){
   let programs = null, sequence = null, sponsors = null, participants = null;
   try{
@@ -1370,7 +1472,12 @@ function loadStateLocal(){
     if(changed) saveProgramsRemote(programs);
   }
   state.programs = programs;
-  state.sequence = sequence || [];
+  const seqMigration = migrateSequence(sequence || []);
+  state.sequence = seqMigration.sequence;
+  if(seqMigration.programsChanged){
+    saveProgramsRemote(state.programs);
+    saveSequenceRemote();
+  }
   state.sponsors = sponsors || [];
   state.participants = participants || {};
   state.loaded = true;
@@ -1415,13 +1522,39 @@ function loadStateFirebase(){
     });
 
     unsubSequence = onSnapshot(DOC_SEQUENCE, (snap)=>{
-      if(suppressNextSequenceSnapshot){ suppressNextSequenceSnapshot = false; }
-      else {
-        state.sequence = (snap.exists() && snap.data().items) ? snap.data().items : [];
+      if(suppressNextSequenceSnapshot){
+        suppressNextSequenceSnapshot = false;
+        seqLoaded = true;
+        maybeResolve();
+        refreshActiveTab();
+        return;
       }
-      seqLoaded = true;
-      maybeResolve();
-      refreshActiveTab();
+
+      const rawSequence = (snap.exists() && snap.data().items) ? snap.data().items : [];
+      const applyMigration = ()=>{
+        const seqMigration = migrateSequence(rawSequence);
+        state.sequence = seqMigration.sequence;
+        if(seqMigration.programsChanged){
+          saveProgramsRemote(state.programs);
+          saveSequenceRemote();
+        }
+        seqLoaded = true;
+        maybeResolve();
+        refreshActiveTab();
+      };
+
+      if(progLoaded){
+        applyMigration();
+      } else {
+        // Programs haven't loaded yet — wait for them so migration has
+        // the real program list to append backing records to.
+        const waitForPrograms = setInterval(()=>{
+          if(progLoaded){
+            clearInterval(waitForPrograms);
+            applyMigration();
+          }
+        }, 100);
+      }
     }, (err)=>{
       console.error('Firestore sequence sync error', err);
       firebaseError = err.message || String(err);
@@ -1596,6 +1729,7 @@ let neededFilters = { search:'', category:'', status:'' };
 function getDedupedContacts(){
   const map = new Map();
   state.programs.forEach(p=>{
+    if(p.isAdminItem) return;
     const submitterEmail = p.submitterEmail || '';
     const submitterPhone = p.submitterPhone || '';
     const emailKey = submitterEmail.trim().toLowerCase();
@@ -1629,13 +1763,14 @@ function updateCounts(){
   document.getElementById('countFinal').textContent = state.sequence.length;
 }
 
-const CATEGORIES = ['Group Dance', 'Group Song', 'Thiruvathirakali', 'Other'];
+const CATEGORIES = ['Group Dance', 'Group Song', 'Thiruvathirakali', 'Other', 'Admin item'];
 
 const categoryMeta = {
   'Group Dance': { icon: '<circle cx="12" cy="4" r="1.6"/><path d="M12 5.6v4.4"/><path d="M10 10l-5 2.5"/><path d="M14 10l5 -2"/><path d="M12 10l-3 9"/><path d="M12 10l3 9"/>', color: 'coral' },
   'Group Song': { icon: '<path d="M9 19a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z"/><path d="M11 17V5l8 -1.5"/><path d="M19 13a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z"/>', color: 'teal' },
   'Thiruvathirakali': { icon: '<path d="M9 21v-9"/><path d="M9 12c0 -5 1.5 -8 3 -9c1.5 1 3 4 3 9"/><path d="M6 21h6"/><ellipse cx="9" cy="12" rx="3" ry="1.4"/>', color: 'amber' },
-  'Other': { icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>', color: 'purple' }
+  'Other': { icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>', color: 'purple' },
+  'Admin item': { icon: '<path d="M9 11l3 3l8 -8"/><path d="M20 12v6a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h10"/>', color: 'gray' }
 };
 const defaultCategoryMeta = { icon: '<path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/>', color: 'gray' };
 
@@ -1698,7 +1833,7 @@ function withdrawProgram(id){
   const p = state.programs.find(p=>p.id===id);
   if(!p) return;
   const label = p.programName || p.submitter || 'this entry';
-  const inSequence = state.sequence.some(s=>s.type==='program' && s.programId===id);
+  const inSequence = state.sequence.some(s=>s.programId===id);
   const confirmMsg = inSequence
     ? `Move "${label}" to Deleted programs? It will also be removed from the sequence builder / running order, and everything after it will shift up one slot. You can restore the program later, but you'll need to re-add it to the sequence yourself.`
     : `Move "${label}" to Deleted programs? You can restore it later from that tab.`;
@@ -1707,7 +1842,7 @@ function withdrawProgram(id){
   p.withdrawnAt = Date.now();
   saveProgramsRemote(state.programs);
   if(inSequence){
-    state.sequence = state.sequence.filter(s=>!(s.type==='program' && s.programId===id));
+    state.sequence = state.sequence.filter(s=>s.programId!==id);
     saveSequenceRemote();
   }
   updateCounts();
@@ -1834,12 +1969,12 @@ function renderProgramsTabShell(cfg){
       <thead>
         <tr>
           ${cfg.groupValue === 'N' ? '' : '<th style="width:18%;">Program</th>'}
-          <th style="width:${cfg.groupValue === 'N' ? '24%' : '17%'};">Notes</th>
-          <th style="width:${cfg.groupValue === 'N' ? '13%' : '11%'};">Category</th>
-          <th style="width:${cfg.groupValue === 'N' ? '15%' : '12%'};">Program lead</th>
-          <th style="width:${cfg.groupValue === 'N' ? '14%' : '11%'};">Program coordinator</th>
-          <th style="width:${cfg.groupValue === 'N' ? '10%' : '8%'};">Group</th>
-          <th style="width:${cfg.groupValue === 'N' ? '11%' : '9%'};">Inputs received</th>
+          ${cfg.groupValue === 'N' ? '' : '<th style="width:9%;">Run time</th>'}
+          <th style="width:${cfg.groupValue === 'N' ? '17%' : '13%'};">Category</th>
+          <th style="width:${cfg.groupValue === 'N' ? '19%' : '14%'};">Program lead</th>
+          <th style="width:${cfg.groupValue === 'N' ? '18%' : '13%'};">Program coordinator</th>
+          <th style="width:${cfg.groupValue === 'N' ? '13%' : '9%'};">Group</th>
+          <th style="width:${cfg.groupValue === 'N' ? '15%' : '10%'};">Inputs received</th>
           <th style="width:6%;"></th>
         </tr>
       </thead>
@@ -1904,11 +2039,9 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
         ${groupValue === 'N' ? '' : `<td data-label="Program">
           <div class="${nameClass}">${escapeHtml(p.programName)}</div>
         </td>`}
-        <td data-label="Notes">
-          ${p.participants ? `<div class="psub">${escapeHtml(truncate(p.participants,60))}</div>` : ''}
-          ${p.audioTracks ? `<div class="psub">Audio: ${escapeHtml(truncate(p.audioTracks,50))}</div>` : ''}
-          ${(!p.participants && !p.audioTracks) ? '<span class="psub">—</span>' : ''}
-        </td>
+        ${groupValue === 'N' ? '' : `<td data-label="Run time">
+          <span class="pfield runtime-field ${p.runTimeSeconds==null ? 'pfield-empty' : ''}" data-id="${p.id}" tabindex="0">${p.runTimeSeconds!=null ? escapeHtml(formatRunTime(p.runTimeSeconds)) : 'Add mm:ss'}</span>
+        </td>`}
         <td data-label="Category">
           <select class="category-select cat-select-${catClass.replace('cat-','')}" data-field="category" data-id="${p.id}">
             ${CATEGORIES.map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${c}</option>`).join('')}
@@ -1924,10 +2057,12 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
           </select>
         </td>
         <td data-label="Group">
-          <div class="yn-toggle">
-            <button class="yes ${p.groupConfirmed==='Y'?'active':''}" data-field="groupConfirmed" data-value="Y" data-id="${p.id}">Y</button>
-            <button class="no ${p.groupConfirmed==='N'?'active':''}" data-field="groupConfirmed" data-value="N" data-id="${p.id}">N</button>
-          </div>
+          ${p.isAdminItem
+            ? `<div class="yn-toggle yn-toggle-locked" title="Admin items are always confirmed"><button class="yes active" disabled>Y</button><button class="no" disabled>N</button></div>`
+            : `<div class="yn-toggle">
+                <button class="yes ${p.groupConfirmed==='Y'?'active':''}" data-field="groupConfirmed" data-value="Y" data-id="${p.id}">Y</button>
+                <button class="no ${p.groupConfirmed==='N'?'active':''}" data-field="groupConfirmed" data-value="N" data-id="${p.id}">N</button>
+              </div>`}
         </td>
         <td data-label="Inputs received">
           <div class="yn-toggle">
@@ -1963,6 +2098,12 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
   tbody.querySelectorAll('.withdraw-btn').forEach(btn=>{
     btn.addEventListener('click', ()=> withdrawProgram(btn.dataset.id));
   });
+  tbody.querySelectorAll('.runtime-field').forEach(span=>{
+    span.addEventListener('click', ()=> activateRunTimeEdit(span));
+    span.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') activateRunTimeEdit(span);
+    });
+  });
 }
 
 function renderProgramsConfirmedRows(){
@@ -1970,6 +2111,57 @@ function renderProgramsConfirmedRows(){
 }
 function renderProgramsNeededRows(){
   renderProgramRowsInto('programsNeededTbody', 'programsNeededEmptyState', neededFilters, 'N');
+}
+
+function activateRunTimeEdit(span){
+  if(span.querySelector('input')) return; // already editing
+  const id = span.dataset.id;
+  const p = state.programs.find(p=>p.id===id);
+  if(!p) return;
+  const currentValue = p.runTimeSeconds!=null ? formatRunTime(p.runTimeSeconds) : '';
+
+  span.classList.remove('pfield-empty');
+  span.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentValue;
+  input.placeholder = 'mm:ss';
+  input.className = 'pfield-input';
+  input.style.maxWidth = '70px';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if(committed) return;
+    committed = true;
+    const raw = input.value.trim();
+    if(!raw){
+      p.runTimeSeconds = null;
+    } else {
+      const parsed = parseRunTime(raw);
+      if(parsed == null){
+        showToast('Enter run time as mm:ss, e.g. 6:30');
+        renderBothProgramsTabsIfVisible();
+        return;
+      }
+      p.runTimeSeconds = parsed;
+    }
+    saveProgramsDebounced();
+    renderBothProgramsTabsIfVisible();
+  }
+  function cancel(){
+    if(committed) return;
+    committed = true;
+    renderBothProgramsTabsIfVisible();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancel(); }
+  });
 }
 
 function renderBothProgramsTabsIfVisible(){
@@ -1997,6 +2189,60 @@ function truncate(s, n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
 function escapeHtml(s){
   if(s==null) return '';
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===================== RUN TIME / RUN SHEET HELPERS =====================
+const DEFAULT_RUN_TIME_SECONDS = 5 * 60;
+const BUFFER_SECONDS = 90; // 1.5 min buffer between every item
+const SHOW_START_TIME = { hour: 16, minute: 0 }; // 4:00pm
+
+// Parses "6:30" -> 390 seconds. Accepts bare numbers ("6" -> 360s) too.
+// Returns null for empty/unparseable input.
+function parseRunTime(str){
+  if(str == null) return null;
+  const s = String(str).trim();
+  if(!s) return null;
+  const mmss = s.match(/^(\d+):([0-5]?\d)$/);
+  if(mmss) return (parseInt(mmss[1],10) * 60) + parseInt(mmss[2],10);
+  const minsOnly = s.match(/^\d+$/);
+  if(minsOnly) return parseInt(s,10) * 60;
+  return null;
+}
+
+function formatRunTime(totalSeconds){
+  if(totalSeconds == null) return '';
+  const m = Math.floor(totalSeconds / 60);
+  const sec = totalSeconds % 60;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function getProgramRunTimeSeconds(p){
+  return (p.runTimeSeconds != null) ? p.runTimeSeconds : DEFAULT_RUN_TIME_SECONDS;
+}
+
+function formatClockTime(date){
+  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+// Walks the sequence in order starting from SHOW_START_TIME, returning
+// { startTime, endTime, durationSeconds, isDefaultDuration } per item,
+// with a 1.5-minute buffer inserted between every item (including before the first).
+// Both regular programs and admin items are real records in state.programs,
+// so duration always comes from the same single source: p.runTimeSeconds.
+function computeRunSheetTimes(){
+  const base = new Date();
+  base.setHours(SHOW_START_TIME.hour, SHOW_START_TIME.minute, 0, 0);
+  let cursor = new Date(base);
+
+  return state.sequence.map(item=>{
+    const p = state.programs.find(pr=>pr.id===item.programId);
+    const durationSeconds = p ? getProgramRunTimeSeconds(p) : DEFAULT_RUN_TIME_SECONDS;
+    const isDefaultDuration = !(p && p.runTimeSeconds != null);
+    const startTime = new Date(cursor);
+    const endTime = new Date(startTime.getTime() + durationSeconds*1000);
+    cursor = new Date(endTime.getTime() + BUFFER_SECONDS*1000);
+    return { itemId: item.id, startTime, endTime, durationSeconds, isDefaultDuration };
+  });
 }
 
 // ===================== PROGRAM CONTACTS TAB =====================
@@ -2094,7 +2340,7 @@ function exportContactsCsv(){
 let selectedParticipantProgramId = '';
 
 function getConfirmedProgramsForParticipants(){
-  return state.programs.filter(p=>p.groupConfirmed==='Y' && !p.withdrawn);
+  return state.programs.filter(p=>p.groupConfirmed==='Y' && !p.withdrawn && !p.isAdminItem);
 }
 
 function renderParticipantsTab(){
@@ -2314,6 +2560,24 @@ const tierMeta = {
 
 let sponsorTierFilter = '';
 
+// Pulls a numeric dollar value out of a free-text amount field like "$500",
+// "500.50", or "1,200". Returns 0 for blank/unparseable entries so one messy
+// entry (e.g. "tbc") doesn't break the running total — it's just skipped.
+function parseSponsorAmount(str){
+  if(!str) return 0;
+  const cleaned = String(str).replace(/[^0-9.]/g, '');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+function getTotalSponsorshipAmount(){
+  return state.sponsors.reduce((sum, s)=> sum + parseSponsorAmount(s.amount), 0);
+}
+
+function formatCurrency(n){
+  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
 function renderSponsorsTab(){
   const root = document.getElementById('tab-sponsors');
 
@@ -2331,6 +2595,10 @@ function renderSponsorsTab(){
   }).join('');
 
   root.innerHTML = `
+    <div class="sponsor-total-banner">
+      <span class="stb-label">Total sponsorship raised</span>
+      <span class="stb-amount">${formatCurrency(getTotalSponsorshipAmount())}</span>
+    </div>
     <div class="tier-grid">${tierCards}</div>
     <div class="sponsor-form sponsor-form-extended">
       <input type="text" id="sponsorNameInput" placeholder="Sponsor / business name">
@@ -2415,6 +2683,11 @@ function updateSponsorField(id, field, value){
   saveSponsorsRemote();
 }
 
+function refreshSponsorTotalBanner(){
+  const el = document.querySelector('.sponsor-total-banner .stb-amount');
+  if(el) el.textContent = formatCurrency(getTotalSponsorshipAmount());
+}
+
 function renderSponsorsList(){
   const wrap = document.getElementById('sponsorsListWrap');
   if(!wrap) return;
@@ -2493,6 +2766,7 @@ function activateSponsorFieldEdit(span){
     committed = true;
     updateSponsorField(id, field, input.value);
     renderSponsorsList();
+    refreshSponsorTotalBanner();
   }
   function cancel(){
     if(committed) return;
@@ -2546,16 +2820,22 @@ function renderSequenceTab(){
       label = customInput.value.trim();
       if(!label){ showToast('Enter a slot name'); return; }
     }
+    const presetDuration = (label in ADMIN_PRESET_DURATIONS_SECONDS) ? ADMIN_PRESET_DURATIONS_SECONDS[label] : null;
+    const adminProgram = createAdminProgramRecord(label, presetDuration);
+    state.programs.push(adminProgram);
+    saveProgramsRemote(state.programs);
+
     const item = {
-      id: 'admin_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
       type: 'admin',
-      label
+      programId: adminProgram.id
     };
     state.sequence.push(item);
     saveSequenceRemote();
     customInput.value = '';
     renderSequenceTab();
-    showToast('Added "' + label + '" to running order');
+    updateCounts();
+    showToast('Added "' + label + '" to running order and Tab 1');
   });
 
   renderPoolList();
@@ -2565,7 +2845,7 @@ function renderSequenceTab(){
 function renderPoolList(){
   const poolList = document.getElementById('poolList');
   if(!poolList) return;
-  const inSeqIds = new Set(state.sequence.filter(s=>s.type==='program').map(s=>s.programId));
+  const inSeqIds = new Set(state.sequence.map(s=>s.programId));
   const available = state.programs.filter(p=>p.groupConfirmed==='Y' && !p.withdrawn && !inSeqIds.has(p.id));
 
   if(available.length === 0){
@@ -2600,9 +2880,11 @@ function renderPoolList(){
 }
 
 function addProgramToSequence(programId){
-  const exists = state.sequence.some(s=>s.type==='program' && s.programId===programId);
+  const exists = state.sequence.some(s=>s.programId===programId);
   if(exists) return;
-  state.sequence.push({ id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type:'program', programId });
+  const p = state.programs.find(p=>p.id===programId);
+  const itemType = (p && p.isAdminItem) ? 'admin' : 'program';
+  state.sequence.push({ id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type: itemType, programId });
   saveSequenceRemote();
   renderSequenceTab();
 }
@@ -2615,28 +2897,18 @@ function renderSeqList(){
     seqList.innerHTML = `<div class="empty-note">Drag programs here, or click + on items in the pool.</div>`;
   } else {
     seqList.innerHTML = state.sequence.map((item, idx)=>{
-      if(item.type === 'admin'){
-        return `
-          <div class="seq-item admin-slot" draggable="true" data-id="${item.id}">
-            <span class="num">${idx+1}</span>
-            <span class="grip"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></span>
-            <div class="info">
-              <div class="t">${escapeHtml(item.label)}</div>
-              <div class="s">Admin item</div>
-            </div>
-            <button class="rm-btn" data-id="${item.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-          </div>
-        `;
-      }
       const p = state.programs.find(p=>p.id===item.programId);
       if(!p) return '';
+      const subtitle = item.type === 'admin'
+        ? 'Admin item'
+        : `${escapeHtml(p.category)} · ${p.coordinator ? 'Coord: '+escapeHtml(p.coordinator) : 'No coordinator yet'}`;
       return `
-        <div class="seq-item" draggable="true" data-id="${item.id}">
+        <div class="seq-item${item.type === 'admin' ? ' admin-slot' : ''}" draggable="true" data-id="${item.id}">
           <span class="num">${idx+1}</span>
           <span class="grip"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></span>
           <div class="info">
             <div class="t">${escapeHtml(p.programName)}</div>
-            <div class="s">${escapeHtml(p.category)} · ${p.coordinator ? 'Coord: '+escapeHtml(p.coordinator) : 'No coordinator yet'}</div>
+            <div class="s">${subtitle}</div>
           </div>
           <button class="rm-btn" data-id="${item.id}" aria-label="Remove"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
         </div>
@@ -2646,6 +2918,11 @@ function renderSeqList(){
 
   seqList.querySelectorAll('.rm-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      const seqItem = state.sequence.find(s=>s.id===btn.dataset.id);
+      if(seqItem && seqItem.type === 'admin'){
+        withdrawProgram(seqItem.programId);
+        return;
+      }
       state.sequence = state.sequence.filter(s=>s.id !== btn.dataset.id);
       saveSequenceRemote();
       renderSequenceTab();
@@ -2681,9 +2958,11 @@ function renderSeqList(){
 
 function handleDropOnSeq(targetId){
   if(seqDragType === 'pool'){
-    const exists = state.sequence.some(s=>s.type==='program' && s.programId===seqDragId);
+    const exists = state.sequence.some(s=>s.programId===seqDragId);
     if(exists){ seqDragId=null; seqDragType=null; return; }
-    const newItem = { id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type:'program', programId: seqDragId };
+    const draggedProgram = state.programs.find(p=>p.id===seqDragId);
+    const itemType = (draggedProgram && draggedProgram.isAdminItem) ? 'admin' : 'program';
+    const newItem = { id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type: itemType, programId: seqDragId };
     if(targetId){
       const idx = state.sequence.findIndex(s=>s.id===targetId);
       state.sequence.splice(idx, 0, newItem);
@@ -2723,22 +3002,32 @@ function renderFinalTab(){
     return;
   }
 
+  const times = computeRunSheetTimes();
+  const showEndTime = times.length ? times[times.length-1].endTime : null;
+  const showStartTime = (()=>{ const d = new Date(); d.setHours(SHOW_START_TIME.hour, SHOW_START_TIME.minute, 0, 0); return d; })();
+  const anyDefaulted = times.some(t=>t.isDefaultDuration);
+
   const rows = state.sequence.map((item, idx) => {
+    const t = times[idx];
+    const timingHtml = t
+      ? `<div class="ftiming${t.isDefaultDuration ? ' ftiming-default' : ''}">${formatClockTime(t.startTime)} – ${formatClockTime(t.endTime)}${t.isDefaultDuration ? '<span class="ftiming-est">est.</span>' : ''}</div>`
+      : `<div class="ftiming">—</div>`;
+
+    const p = state.programs.find(p=>p.id===item.programId);
+    if(!p) return '';
     if(item.type === 'admin'){
       return `
         <div class="final-row admin">
           <div class="fnum">${idx+1}</div>
           <div class="finfo">
-            <div class="ft">${escapeHtml(item.label)}</div>
+            <div class="ft">${escapeHtml(p.programName)}</div>
             <div class="fs">Admin item</div>
           </div>
-          <div class="ftiming"></div>
+          ${timingHtml}
           <div class="fstatus"><span class="badge-admin">Admin</span></div>
         </div>
       `;
     }
-    const p = state.programs.find(p=>p.id===item.programId);
-    if(!p) return '';
     const statusBadge = p.isPending
       ? `<span class="badge-pending">Name pending</span>`
       : (p.inputsReceived==='Y' ? `<span class="badge-ready">Ready</span>` : `<span class="badge-pending">Awaiting input</span>`);
@@ -2749,7 +3038,7 @@ function renderFinalTab(){
           <div class="ft">${escapeHtml(p.programName)}</div>
           <div class="fs">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>
         </div>
-        <div class="ftiming">${escapeHtml(p.timing || p.durationRaw || '—')}</div>
+        ${timingHtml}
         <div class="fstatus">${statusBadge}</div>
       </div>
     `;
@@ -2759,6 +3048,10 @@ function renderFinalTab(){
     <div class="final-header">
       <div class="label">Kalasandhya 2026</div>
       <h2>Final running order</h2>
+    </div>
+    <div style="background:#FBF1E3;border:1px solid #E8C9A0;border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:var(--marigold-dark);display:flex;align-items:center;gap:8px;">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 9h.01M11 12h1v4h1"/></svg>
+      Show starts at ${formatClockTime(showStartTime)}, with a 1.5 min buffer between every item.${anyDefaulted ? ' Items marked "est." are using a default run time — enter the real time in Tab 1 / via admin presets for an accurate run sheet.' : ''}${showEndTime ? ` Estimated finish: ${formatClockTime(showEndTime)}.` : ''}
     </div>
     <div class="actions-bar">
       <button class="btn-secondary" id="exportBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 11l5 5l5 -5M12 4v12"/></svg> Export data</button>
@@ -2797,7 +3090,10 @@ function importData(e){
     try{
       const payload = JSON.parse(evt.target.result);
       if(payload.programs) state.programs = payload.programs;
-      if(payload.sequence) state.sequence = payload.sequence;
+      if(payload.sequence){
+        const seqMigration = migrateSequence(payload.sequence);
+        state.sequence = seqMigration.sequence;
+      }
       if(payload.sponsors) state.sponsors = payload.sponsors;
       if(payload.participants) state.participants = payload.participants;
       saveProgramsRemote(state.programs);
@@ -2841,7 +3137,9 @@ async function init(){
       }
       if(e.key === STORAGE_KEY_SEQUENCE && e.newValue){
         try{
-          state.sequence = JSON.parse(e.newValue);
+          const seqMigration = migrateSequence(JSON.parse(e.newValue));
+          state.sequence = seqMigration.sequence;
+          if(seqMigration.programsChanged) saveProgramsRemote(state.programs);
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='sequence') renderSequenceTab();
           if(activeTab==='final') renderFinalTab();
