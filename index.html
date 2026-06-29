@@ -2037,7 +2037,7 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
     return `
       <tr data-id="${p.id}">
         ${groupValue === 'N' ? '' : `<td data-label="Program">
-          <div class="${nameClass}">${escapeHtml(p.programName)}</div>
+          <span class="pfield pname-field ${nameClass} ${p.programName ? '' : 'pfield-empty'}" data-id="${p.id}" tabindex="0">${p.programName ? escapeHtml(p.programName) : 'Add program name'}</span>
         </td>`}
         ${groupValue === 'N' ? '' : `<td data-label="Run time">
           <span class="pfield runtime-field ${p.runTimeSeconds==null ? 'pfield-empty' : ''}" data-id="${p.id}" tabindex="0">${p.runTimeSeconds!=null ? escapeHtml(formatRunTime(p.runTimeSeconds)) : 'Add mm:ss'}</span>
@@ -2104,6 +2104,12 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
       if(e.key === 'Enter') activateRunTimeEdit(span);
     });
   });
+  tbody.querySelectorAll('.pname-field').forEach(span=>{
+    span.addEventListener('click', ()=> activateProgramNameEdit(span));
+    span.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') activateProgramNameEdit(span);
+    });
+  });
 }
 
 function renderProgramsConfirmedRows(){
@@ -2111,6 +2117,52 @@ function renderProgramsConfirmedRows(){
 }
 function renderProgramsNeededRows(){
   renderProgramRowsInto('programsNeededTbody', 'programsNeededEmptyState', neededFilters, 'N');
+}
+
+function activateProgramNameEdit(span){
+  if(span.querySelector('input')) return; // already editing
+  const id = span.dataset.id;
+  const p = state.programs.find(p=>p.id===id);
+  if(!p) return;
+  const currentValue = p.programName || '';
+
+  span.classList.remove('pfield-empty');
+  span.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentValue;
+  input.placeholder = 'Program name';
+  input.className = 'pfield-input';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if(committed) return;
+    committed = true;
+    const raw = input.value.trim();
+    if(!raw){
+      showToast('Program name can\'t be blank');
+      renderBothProgramsTabsIfVisible();
+      return;
+    }
+    p.programName = raw;
+    p.isPending = false;
+    saveProgramsDebounced();
+    renderBothProgramsTabsIfVisible();
+  }
+  function cancel(){
+    if(committed) return;
+    committed = true;
+    renderBothProgramsTabsIfVisible();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancel(); }
+  });
 }
 
 function activateRunTimeEdit(span){
