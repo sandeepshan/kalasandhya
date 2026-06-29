@@ -4,7 +4,7 @@
 // itself and is unaffected by this cache — when there's no connection, the
 // app already falls back to local storage on its own.
 
-const CACHE_NAME = 'kalasandhya-2026-v1';
+const CACHE_NAME = 'kalasandhya-2026-v2';
 
 const APP_SHELL = [
   './',
