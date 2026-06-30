@@ -1060,16 +1060,16 @@
     border-radius:9px;
     padding:10px 14px;
     display:grid;
-    grid-template-columns:1fr 150px auto;
+    grid-template-columns:1fr 160px 110px 160px 90px;
     align-items:center;
-    gap:6px 14px;
+    gap:6px 10px;
   }
   .dash-attn-name{font-weight:700;color:var(--ink);font-size:13.5px;}
   .dash-attn-meta{font-size:12px;color:var(--ink-soft);}
-  .dash-attn-reasons{display:flex;gap:5px;flex-wrap:nowrap;}
-  @media(max-width:600px){
+  .dash-attn-badge{display:flex;justify-content:center;}
+  @media(max-width:700px){
     .dash-attn-row{grid-template-columns:1fr;gap:5px;}
-    .dash-attn-reasons{flex-wrap:wrap;}
+    .dash-attn-badge{justify-content:flex-start;}
   }
   .dash-empty{color:var(--ink-soft);font-size:13.5px;padding:8px 2px;}
   .dash-coord-row{
@@ -3034,7 +3034,9 @@ function renderDashboardTab(){
       <div class="dash-attn-row">
         <div class="dash-attn-name">${escapeHtml(p.programName)}</div>
         <div class="dash-attn-meta">${p.submitter ? escapeHtml(p.submitter) : 'No lead listed'}</div>
-        <div class="dash-attn-reasons">${nameBadge}${participantsBadge}${avBadge}</div>
+        <div class="dash-attn-badge">${nameBadge}</div>
+        <div class="dash-attn-badge">${participantsBadge}</div>
+        <div class="dash-attn-badge">${avBadge}</div>
       </div>
     `;
   }).join('') || `<div class="dash-empty">No active programs yet.</div>`;
