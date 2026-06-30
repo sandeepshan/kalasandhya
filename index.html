@@ -790,6 +790,22 @@
   .restore-btn:hover{background:var(--green);color:var(--white);}
   .restore-btn .ico{width:14px;height:14px;}
 
+  .delete-forever-btn{
+    border:1.5px solid var(--maroon);
+    background:var(--white);
+    color:var(--maroon);
+    padding:6px 9px;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:inherit;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-left:6px;
+  }
+  .delete-forever-btn:hover{background:var(--maroon);color:var(--white);}
+  .delete-forever-btn .ico{width:14px;height:14px;}
+
   /* ===== Sequence builder tab ===== */
   .seq-layout{
     display:grid;
@@ -1273,8 +1289,7 @@
 </div>
 
 <div class="tabbar" id="tabbar">
-  <button class="tab-btn active" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs – group confirmed <span class="count" id="countProgramsConfirmed">0</span></button>
-  <button class="tab-btn" data-tab="programs-needed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>Programs – groups needed <span class="count" id="countProgramsNeeded">0</span></button>
+  <button class="tab-btn active" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs <span class="count" id="countProgramsConfirmed">0</span></button>
   <button class="tab-btn" data-tab="contacts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Program contacts <span class="count" id="countContacts">0</span></button>
   <button class="tab-btn" data-tab="participants"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>Participants <span class="count" id="countParticipants">0</span></button>
   <button class="tab-btn" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
@@ -1287,10 +1302,6 @@
 
   <div id="tab-programs-confirmed">
     <div class="loading-screen">Loading programs…</div>
-  </div>
-
-  <div id="tab-programs-needed" style="display:none;">
-    <div class="loading-screen">Loading…</div>
   </div>
 
   <div id="tab-contacts" style="display:none;">
@@ -1728,7 +1739,6 @@ function refreshActiveTab(){
   updateCounts();
   const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
   if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
-  if(activeTab==='programs-needed') renderProgramsNeededTab();
   if(activeTab==='contacts') renderContactsRows();
   if(activeTab==='participants') renderParticipantsTab();
   if(activeTab==='sponsors') renderSponsorsTab();
@@ -1832,11 +1842,10 @@ function initTabs(){
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const tab = btn.dataset.tab;
-      ['programs-confirmed','programs-needed','contacts','participants','sponsors','sequence','final','deleted'].forEach(t=>{
+      ['programs-confirmed','contacts','participants','sponsors','sequence','final','deleted'].forEach(t=>{
         document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
       });
       if(tab==='programs-confirmed') renderProgramsConfirmedTab();
-      if(tab==='programs-needed') renderProgramsNeededTab();
       if(tab==='contacts') renderContactsTab();
       if(tab==='participants') renderParticipantsTab();
       if(tab==='sponsors') renderSponsorsTab();
@@ -1848,8 +1857,7 @@ function initTabs(){
 }
 
 // ===================== PROGRAMS TABS =====================
-let confirmedFilters = { search:'', category:'', status:'' };
-let neededFilters = { search:'', category:'', status:'' };
+let confirmedFilters = { search:'', category:'', status:'', coordinator:'' };
 
 function getDedupedContacts(){
   const map = new Map();
@@ -1876,10 +1884,7 @@ function getDedupedContacts(){
 
 function updateCounts(){
   const active = state.programs.filter(p=>!p.withdrawn);
-  const confirmed = active.filter(p=>p.groupConfirmed==='Y').length;
-  const needed = active.length - confirmed;
-  document.getElementById('countProgramsConfirmed').textContent = confirmed;
-  document.getElementById('countProgramsNeeded').textContent = needed;
+  document.getElementById('countProgramsConfirmed').textContent = active.length;
   document.getElementById('countContacts').textContent = getDedupedContacts().length;
   document.getElementById('countParticipants').textContent = Object.values(state.participants).reduce((sum, list) => sum + list.length, 0);
   document.getElementById('countSponsors').textContent = state.sponsors.length;
@@ -1922,6 +1927,7 @@ function renderProgramsConfirmedTab(){
     searchId: 'searchInputConfirmed',
     categoryFilterId: 'categoryFilterConfirmed',
     statusFilterId: 'statusFilterConfirmed',
+    coordinatorFilterId: 'coordinatorFilterConfirmed',
     emptyStateId: 'programsConfirmedEmptyState',
     filters: confirmedFilters,
     groupValue: 'Y',
@@ -1929,24 +1935,11 @@ function renderProgramsConfirmedTab(){
   });
 }
 
-function renderProgramsNeededTab(){
-  renderProgramsTabShell({
-    rootId: 'tab-programs-needed',
-    tbodyId: 'programsNeededTbody',
-    searchId: 'searchInputNeeded',
-    categoryFilterId: 'categoryFilterNeeded',
-    statusFilterId: 'statusFilterNeeded',
-    emptyStateId: 'programsNeededEmptyState',
-    filters: neededFilters,
-    groupValue: 'N',
-    renderRows: renderProgramsNeededRows
-  });
-}
-
 function programsForGroupValue(groupValue){
-  return groupValue === 'Y'
-    ? state.programs.filter(p=>p.groupConfirmed === 'Y' && !p.withdrawn)
-    : state.programs.filter(p=>p.groupConfirmed !== 'Y' && !p.withdrawn);
+  // The "groups needed" tab has been removed — every non-withdrawn program
+  // now shows in the confirmed view regardless of its groupConfirmed value,
+  // so nothing can silently disappear if that field is ever 'N'.
+  return state.programs.filter(p=>!p.withdrawn);
 }
 
 function getWithdrawnPrograms(){
@@ -1991,6 +1984,31 @@ function restoreProgram(id){
   showToast(`Restored "${p.programName || p.submitter}"`);
 }
 
+function deleteProgramForever(id){
+  const p = state.programs.find(p=>p.id===id);
+  if(!p) return;
+  const label = p.programName || p.submitter || 'this entry';
+  if(!confirm(`Permanently delete "${label}"? This cannot be undone — it will be removed completely, including its participant list. There is no way to get it back.`)) return;
+
+  state.programs = state.programs.filter(pr=>pr.id!==id);
+  saveProgramsRemote(state.programs);
+
+  // Clean up any leftover participant roster or sequence placement for
+  // this program, in case stale data exists from before it was withdrawn.
+  if(state.participants[id]){
+    delete state.participants[id];
+    saveParticipantsRemote();
+  }
+  if(state.sequence.some(s=>s.programId===id)){
+    state.sequence = state.sequence.filter(s=>s.programId!==id);
+    saveSequenceRemote();
+  }
+
+  updateCounts();
+  renderDeletedTab();
+  showToast(`Permanently deleted "${label}"`);
+}
+
 function formatWithdrawnDate(ts){
   if(!ts) return '—';
   const d = new Date(ts);
@@ -2006,7 +2024,7 @@ function renderDeletedTab(){
     root.innerHTML = `
       <div class="empty-state">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/><path d="M10 11v6M14 11v6"/></svg>
-        <p>No withdrawn programs. Use the trash icon on a program row in the confirmed or groups-needed tabs to move it here.</p>
+        <p>No withdrawn programs. Use the trash icon on a program row in the Programs tab to move it here.</p>
       </div>
     `;
     return;
@@ -2022,11 +2040,10 @@ function renderDeletedTab(){
       <thead>
         <tr>
           <th style="width:24%;">Program</th>
-          <th style="width:18%;">Program lead</th>
-          <th style="width:14%;">Category</th>
-          <th style="width:10%;">Group</th>
+          <th style="width:20%;">Program lead</th>
+          <th style="width:16%;">Category</th>
           <th style="width:20%;">Withdrawn on</th>
-          <th style="width:14%;"></th>
+          <th style="width:20%;"></th>
         </tr>
       </thead>
       <tbody id="deletedTbody"></tbody>
@@ -2042,10 +2059,10 @@ function renderDeletedTab(){
         <td data-label="Program"><div class="${nameClass}">${escapeHtml(p.programName || '— name pending —')}</div></td>
         <td data-label="Program lead"><div style="font-size:13px;font-weight:600;">${escapeHtml(p.submitter)}</div></td>
         <td data-label="Category">${escapeHtml(p.category)}</td>
-        <td data-label="Group">${p.groupConfirmed==='Y' ? 'Confirmed' : 'Needed'}</td>
         <td data-label="Withdrawn on">${formatWithdrawnDate(p.withdrawnAt)}</td>
-        <td data-label="" style="text-align:right;">
+        <td data-label="" style="text-align:right;white-space:nowrap;">
           <button class="restore-btn" data-id="${p.id}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v6h6M4 10a8 8 0 1 0 2.3 -5.7"/></svg>Restore</button>
+          <button class="delete-forever-btn" data-id="${p.id}" title="Permanently delete"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/><path d="M10 11v6M14 11v6"/></svg></button>
         </td>
       </tr>
     `;
@@ -2053,6 +2070,9 @@ function renderDeletedTab(){
 
   tbody.querySelectorAll('.restore-btn').forEach(btn=>{
     btn.addEventListener('click', ()=> restoreProgram(btn.dataset.id));
+  });
+  tbody.querySelectorAll('.delete-forever-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteProgramForever(btn.dataset.id));
   });
 }
 
@@ -2089,18 +2109,20 @@ function renderProgramsTabShell(cfg){
         <option value="N">Inputs pending</option>
         <option value="pending-name">Name pending</option>
       </select>
+      <select class="filter-select" id="${cfg.coordinatorFilterId}">
+        <option value="">All coordinators</option>
+      </select>
     </div>
     <div style="overflow-x:auto;">
     <table class="program-table">
       <thead>
         <tr>
-          ${cfg.groupValue === 'N' ? '' : '<th style="width:18%;">Program</th>'}
-          ${cfg.groupValue === 'N' ? '' : '<th style="width:9%;">Run time</th>'}
-          <th style="width:${cfg.groupValue === 'N' ? '17%' : '13%'};">Category</th>
-          <th style="width:${cfg.groupValue === 'N' ? '19%' : '14%'};">Program lead</th>
-          <th style="width:${cfg.groupValue === 'N' ? '18%' : '13%'};">Program coordinator</th>
-          <th style="width:${cfg.groupValue === 'N' ? '13%' : '9%'};">Group</th>
-          <th style="width:${cfg.groupValue === 'N' ? '15%' : '10%'};">Inputs received</th>
+          <th style="width:19%;">Program</th>
+          <th style="width:10%;">Run time</th>
+          <th style="width:14%;">Category</th>
+          <th style="width:15%;">Program lead</th>
+          <th style="width:14%;">Program coordinator</th>
+          <th style="width:11%;">Inputs received</th>
           <th style="width:6%;"></th>
         </tr>
       </thead>
@@ -2123,6 +2145,19 @@ function renderProgramsTabShell(cfg){
   });
   document.getElementById(cfg.statusFilterId).value = cfg.filters.status;
 
+  const coordSelect = document.getElementById(cfg.coordinatorFilterId);
+  COORDINATORS.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if(c===cfg.filters.coordinator) opt.selected = true;
+    coordSelect.appendChild(opt);
+  });
+  const unassignedOpt = document.createElement('option');
+  unassignedOpt.value = '__unassigned__';
+  unassignedOpt.textContent = 'Unassigned';
+  if(cfg.filters.coordinator === '__unassigned__') unassignedOpt.selected = true;
+  coordSelect.appendChild(unassignedOpt);
+
   document.getElementById(cfg.searchId).addEventListener('input', e=>{
     cfg.filters.search = e.target.value;
     cfg.renderRows();
@@ -2133,6 +2168,10 @@ function renderProgramsTabShell(cfg){
   });
   document.getElementById(cfg.statusFilterId).addEventListener('change', e=>{
     cfg.filters.status = e.target.value;
+    cfg.renderRows();
+  });
+  document.getElementById(cfg.coordinatorFilterId).addEventListener('change', e=>{
+    cfg.filters.coordinator = e.target.value;
     cfg.renderRows();
   });
 
@@ -2149,6 +2188,8 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
     if(filters.status === 'Y' && p.inputsReceived !== 'Y') return false;
     if(filters.status === 'N' && p.inputsReceived !== 'N') return false;
     if(filters.status === 'pending-name' && !p.isPending) return false;
+    if(filters.coordinator === '__unassigned__' && p.coordinator) return false;
+    if(filters.coordinator && filters.coordinator !== '__unassigned__' && p.coordinator !== filters.coordinator) return false;
     if(q && groupValue !== 'N' && !(p.programName.toLowerCase().includes(q) || p.submitter.toLowerCase().includes(q))) return false;
     if(q && groupValue === 'N' && !p.submitter.toLowerCase().includes(q)) return false;
     return true;
@@ -2162,12 +2203,12 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
     const nameClass = p.isPending ? 'pname pending' : 'pname';
     return `
       <tr data-id="${p.id}">
-        ${groupValue === 'N' ? '' : `<td data-label="Program">
+        <td data-label="Program">
           <span class="pfield pname-field ${nameClass} ${p.programName ? '' : 'pfield-empty'}" data-id="${p.id}" tabindex="0">${p.programName ? escapeHtml(p.programName) : 'Add program name'}</span>
-        </td>`}
-        ${groupValue === 'N' ? '' : `<td data-label="Run time">
+        </td>
+        <td data-label="Run time">
           <span class="pfield runtime-field ${p.runTimeSeconds==null ? 'pfield-empty' : ''}" data-id="${p.id}" tabindex="0">${p.runTimeSeconds!=null ? escapeHtml(formatRunTime(p.runTimeSeconds)) : 'Add mm:ss'}</span>
-        </td>`}
+        </td>
         <td data-label="Category">
           <select class="category-select cat-select-${catClass.replace('cat-','')}" data-field="category" data-id="${p.id}">
             ${CATEGORIES.map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${c}</option>`).join('')}
@@ -2181,14 +2222,6 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
             <option value="">— assign —</option>
             ${COORDINATORS.map(c=>`<option value="${c}" ${p.coordinator===c?'selected':''}>${c}</option>`).join('')}
           </select>
-        </td>
-        <td data-label="Group">
-          ${p.isAdminItem
-            ? `<div class="yn-toggle yn-toggle-locked" title="Admin items are always confirmed"><button class="yes active" disabled>Y</button><button class="no" disabled>N</button></div>`
-            : `<div class="yn-toggle">
-                <button class="yes ${p.groupConfirmed==='Y'?'active':''}" data-field="groupConfirmed" data-value="Y" data-id="${p.id}">Y</button>
-                <button class="no ${p.groupConfirmed==='N'?'active':''}" data-field="groupConfirmed" data-value="N" data-id="${p.id}">N</button>
-              </div>`}
         </td>
         <td data-label="Inputs received">
           <div class="yn-toggle">
@@ -2240,9 +2273,6 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
 
 function renderProgramsConfirmedRows(){
   renderProgramRowsInto('programsConfirmedTbody', 'programsConfirmedEmptyState', confirmedFilters, 'Y');
-}
-function renderProgramsNeededRows(){
-  renderProgramRowsInto('programsNeededTbody', 'programsNeededEmptyState', neededFilters, 'N');
 }
 
 function activateProgramNameEdit(span){
@@ -2345,7 +2375,6 @@ function activateRunTimeEdit(span){
 function renderBothProgramsTabsIfVisible(){
   const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
   if(activeTab === 'programs-confirmed') renderProgramsConfirmedTab();
-  if(activeTab === 'programs-needed') renderProgramsNeededTab();
   updateCounts();
 }
 
@@ -2518,7 +2547,7 @@ function exportContactsCsv(){
 let selectedParticipantProgramId = '';
 
 function getConfirmedProgramsForParticipants(){
-  return state.programs.filter(p=>p.groupConfirmed==='Y' && !p.withdrawn && !p.isAdminItem);
+  return state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
 }
 
 function renderParticipantsTab(){
@@ -3024,7 +3053,7 @@ function renderPoolList(){
   const poolList = document.getElementById('poolList');
   if(!poolList) return;
   const inSeqIds = new Set(state.sequence.map(s=>s.programId));
-  const available = state.programs.filter(p=>p.groupConfirmed==='Y' && !p.withdrawn && !inSeqIds.has(p.id));
+  const available = state.programs.filter(p=>!p.withdrawn && !inSeqIds.has(p.id));
 
   if(available.length === 0){
     poolList.innerHTML = `<div class="empty-note">All confirmed programs have been added to the running order.</div>`;
@@ -3308,7 +3337,6 @@ async function init(){
           state.programs = JSON.parse(e.newValue);
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
-          if(activeTab==='programs-needed') renderProgramsNeededTab();
           if(activeTab==='contacts') renderContactsRows();
           updateCounts();
         }catch(err){}
