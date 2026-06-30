@@ -2875,7 +2875,7 @@ function renderDashboardTab(){
     return `
       <div class="dash-attn-row">
         <div class="dash-attn-name">${escapeHtml(p.isPending ? p.programName : p.programName)}</div>
-        <div class="dash-attn-meta">${escapeHtml(p.category)}${p.coordinator ? ' · '+escapeHtml(p.coordinator) : ' · Unassigned'}</div>
+        <div class="dash-attn-meta">${p.submitter ? escapeHtml(p.submitter) : 'No lead listed'}</div>
         <div class="dash-attn-reasons">${reasons.map(r=>`<span class="badge-pending">${r}</span>`).join(' ')}</div>
       </div>
     `;
