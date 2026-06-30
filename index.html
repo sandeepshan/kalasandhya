@@ -1007,6 +1007,7 @@
   .final-row .fstatus{min-width:74px;text-align:right;}
   .badge-ready{background:#E1ECE0;color:#2C5836;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
   .badge-pending{background:#F6E1C8;color:#8A5710;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .badge-ok{background:#EFEFEF;color:#888;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;}
   .badge-admin{background:#E7E2EE;color:#4A3D77;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
 
   .actions-bar{
@@ -1065,7 +1066,7 @@
   }
   .dash-attn-name{font-weight:700;color:var(--ink);font-size:13.5px;flex:1 1 200px;}
   .dash-attn-meta{font-size:12px;color:var(--ink-soft);}
-  .dash-attn-reasons{display:flex;gap:6px;flex-wrap:wrap;}
+  .dash-attn-reasons{display:flex;gap:5px;flex-wrap:wrap;}
   .dash-empty{color:var(--ink-soft);font-size:13.5px;padding:8px 2px;}
   .dash-coord-row{
     border:1px solid var(--line);
@@ -2081,7 +2082,7 @@ let confirmedFilters = { search:'', category:'', status:'', coordinator:'' };
 function getDedupedContacts(){
   const map = new Map();
   state.programs.forEach(p=>{
-    if(p.isAdminItem) return;
+    if(isEffectivelyAdminItem(p)) return;
     const submitterEmail = p.submitterEmail || '';
     const submitterPhone = p.submitterPhone || '';
     const emailKey = submitterEmail.trim().toLowerCase();
@@ -2844,7 +2845,7 @@ function triggerConfetti(){
 
 // ===================== DASHBOARD TAB =====================
 function getProgramsNeedingAttention(){
-  const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
+  const active = state.programs.filter(p=>!p.withdrawn && !isEffectivelyAdminItem(p));
   return active.filter(p=>{
     return p.isPending || p.participantsReceived !== 'Y' || p.avReceived !== 'Y';
   });
@@ -2854,7 +2855,7 @@ function renderDashboardTab(){
   const root = document.getElementById('tab-dashboard');
   updateCounts();
 
-  const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
+  const active = state.programs.filter(p=>!p.withdrawn && !isEffectivelyAdminItem(p));
   const total = active.length;
   const participantsReady = active.filter(p=>p.participantsReceived==='Y').length;
   const avReady = active.filter(p=>p.avReceived==='Y').length;
@@ -2884,19 +2885,24 @@ function renderDashboardTab(){
 
   const unassignedCount = active.filter(p=>!p.coordinator).length;
 
-  const attentionRows = needsAttention.length ? needsAttention.map(p=>{
-    const reasons = [];
-    if(p.isPending) reasons.push('name pending');
-    if(p.participantsReceived!=='Y') reasons.push('participants pending');
-    if(p.avReceived!=='Y') reasons.push('AV pending');
+  const allProgramRows = active.map(p=>{
+    const nameBadge = p.isPending
+      ? `<span class="badge-pending">Name Pending</span>`
+      : `<span class="badge-ok">Name ✓</span>`;
+    const participantsBadge = p.participantsReceived !== 'Y'
+      ? `<span class="badge-pending">Participants Pending</span>`
+      : `<span class="badge-ok">Participants ✓</span>`;
+    const avBadge = p.avReceived !== 'Y'
+      ? `<span class="badge-pending">AV Pending</span>`
+      : `<span class="badge-ok">AV ✓</span>`;
     return `
       <div class="dash-attn-row">
         <div class="dash-attn-name">${escapeHtml(p.programName)}</div>
         <div class="dash-attn-meta">${p.submitter ? escapeHtml(p.submitter) : 'No lead listed'}</div>
-        <div class="dash-attn-reasons">${reasons.map(r=>`<span class="badge-pending">${r}</span>`).join(' ')}</div>
+        <div class="dash-attn-reasons">${nameBadge}${participantsBadge}${avBadge}</div>
       </div>
     `;
-  }).join('') : `<div class="dash-empty">Everything's in good shape — no programs need attention right now.</div>`;
+  }).join('') || `<div class="dash-empty">No active programs yet.</div>`;
 
   root.innerHTML = `
     <div class="final-header">
@@ -2916,8 +2922,8 @@ function renderDashboardTab(){
     </div>
 
     <div class="panel">
-      <h3>Needs attention${needsAttention.length ? ` (${needsAttention.length})` : ''}</h3>
-      <div class="dash-attn-list">${attentionRows}</div>
+      <h3>All programs${needsAttention.length ? ` · <span style="color:var(--marigold-dark);font-size:16px;">${needsAttention.length} need attention</span>` : ' · All good 🎉'}</h3>
+      <div class="dash-attn-list">${allProgramRows}</div>
     </div>
 
     <div class="panel">
@@ -2971,10 +2977,10 @@ function renderPresenterTab(){
   const renderItemBlock = (row, kind)=>{
     if(!row) return `<div class="presenter-empty">${kind==='now' ? 'Not started yet' : '—'}</div>`;
     const { p, t } = row;
-    const name = p.isAdminItem ? p.programName : (p.isPending ? p.programName : p.programName);
+    const name = p.programName;
     return `
       <div class="presenter-title">${escapeHtml(name)}</div>
-      ${!p.isAdminItem ? `<div class="presenter-sub">${escapeHtml(p.category)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>` : `<div class="presenter-sub">Admin item</div>`}
+      ${!isEffectivelyAdminItem(p) ? `<div class="presenter-sub">${escapeHtml(p.category)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>` : `<div class="presenter-sub">Admin item</div>`}
       <div class="presenter-time">${t ? formatClockTime(t.startTime)+' – '+formatClockTime(t.endTime) : ''}</div>
     `;
   };
@@ -3016,6 +3022,12 @@ function renderPresenterTab(){
 }
 
 
+function isEffectivelyAdminItem(p){
+  // A program is treated as an admin item only if both the flag is set
+  // AND the category is still "Admin item". Changing the category to
+  // anything else (e.g. "Other") promotes it into the regular program list.
+  return p.isAdminItem && p.category === 'Admin item';
+}
 let contactsSort = 'asc';
 
 function renderContactsTab(){
@@ -3109,7 +3121,7 @@ function exportContactsCsv(){
 let selectedParticipantProgramId = '';
 
 function getConfirmedProgramsForParticipants(){
-  return state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
+  return state.programs.filter(p=>!p.withdrawn && !isEffectivelyAdminItem(p));
 }
 
 function renderParticipantsTab(){
@@ -3652,7 +3664,7 @@ function addProgramToSequence(programId){
   const exists = state.sequence.some(s=>s.programId===programId);
   if(exists) return;
   const p = state.programs.find(p=>p.id===programId);
-  const itemType = (p && p.isAdminItem) ? 'admin' : 'program';
+  const itemType = (p && isEffectivelyAdminItem(p)) ? 'admin' : 'program';
   state.sequence.push({ id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type: itemType, programId });
   saveSequenceRemote();
   renderSequenceTab();
@@ -3730,7 +3742,7 @@ function handleDropOnSeq(targetId){
     const exists = state.sequence.some(s=>s.programId===seqDragId);
     if(exists){ seqDragId=null; seqDragType=null; return; }
     const draggedProgram = state.programs.find(p=>p.id===seqDragId);
-    const itemType = (draggedProgram && draggedProgram.isAdminItem) ? 'admin' : 'program';
+    const itemType = (draggedProgram && isEffectivelyAdminItem(draggedProgram)) ? 'admin' : 'program';
     const newItem = { id: 'seq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), type: itemType, programId: seqDragId };
     if(targetId){
       const idx = state.sequence.findIndex(s=>s.id===targetId);
