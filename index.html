@@ -1132,6 +1132,64 @@
     .presenter-next-row{grid-template-columns:1fr;}
   }
 
+  /* Countdown banner */
+  .countdown-banner{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    text-align:center;
+    background:linear-gradient(90deg, var(--marigold), var(--gold));
+    color:var(--maroon-dark);
+    font-weight:700;
+    font-size:13.5px;
+    padding:9px 16px;
+  }
+  .countdown-banner.show{display:flex;}
+  .countdown-banner .cd-num{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:19px;
+    font-weight:700;
+    margin:0 2px;
+  }
+  .countdown-banner.cd-today{background:linear-gradient(90deg, var(--maroon), var(--marigold-dark));color:var(--ivory);}
+
+  /* Weather + venue block */
+  .weather-venue-panel{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    background:#FBF1E3;
+    border:1px solid #E8C9A0;
+    border-radius:var(--radius-lg);
+    padding:16px 18px;
+    margin-bottom:18px;
+  }
+  .weather-block{display:flex;align-items:center;gap:10px;}
+  .weather-temp{font-family:'Cormorant Garamond', Georgia, serif;font-size:30px;font-weight:700;color:var(--maroon);}
+  .weather-desc{font-size:12.5px;color:var(--ink-soft);}
+  .weather-venue-divider{width:1px;align-self:stretch;background:#E8C9A0;}
+  .venue-link{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    color:var(--marigold-dark);
+    font-weight:700;
+    font-size:13px;
+    text-decoration:none;
+  }
+  .venue-link:hover{text-decoration:underline;}
+
+  /* Confetti canvas */
+  #confettiCanvas{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:9999;
+  }
+
   .empty-state{
     text-align:center;
     padding:60px 20px;
@@ -1369,6 +1427,8 @@
     <p class="sub">Cultural program coordination &amp; running order</p>
   </div>
 </div>
+
+<div class="countdown-banner" id="countdownBanner"></div>
 
 <div class="poster-section" id="posterSection">
   <button class="poster-toggle" id="posterToggleBtn">
@@ -2042,6 +2102,8 @@ function updateCounts(){
   const deletedCountEl = document.getElementById('countDeleted');
   if(deletedCountEl) deletedCountEl.textContent = getWithdrawnPrograms().length;
   document.getElementById('countFinal').textContent = state.sequence.length;
+  renderCountdownBanner();
+  checkSponsorMilestone();
 }
 
 const CATEGORIES = ['Group Dance', 'Group Song', 'Thiruvathirakali', 'Other', 'Admin item'];
@@ -2554,6 +2616,15 @@ const DEFAULT_RUN_TIME_SECONDS = 5 * 60;
 const BUFFER_SECONDS = 90; // 1.5 min buffer between every item
 const SHOW_START_TIME = { hour: 16, minute: 0 }; // 4:00pm
 
+// ===================== EVENT DATE / VENUE =====================
+// Saturday 8th August 2026, 4:00pm, Geelong West Town Hall (per the event poster).
+const EVENT_DATE = new Date(2026, 7, 8, 16, 0, 0);
+const VENUE_NAME = 'Geelong West Town Hall';
+const VENUE_LAT = -38.1453;
+const VENUE_LON = 144.3470;
+const VENUE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(VENUE_NAME + ', Geelong West VIC');
+
+
 // Parses "6:30" -> 390 seconds. Accepts bare numbers ("6" -> 360s) too.
 // Returns null for empty/unparseable input.
 function parseRunTime(str){
@@ -2601,6 +2672,155 @@ function computeRunSheetTimes(){
     cursor = new Date(endTime.getTime() + BUFFER_SECONDS*1000);
     return { itemId: item.id, startTime, endTime, durationSeconds, isDefaultDuration };
   });
+}
+
+// ===================== COUNTDOWN BANNER =====================
+function getDaysToEvent(){
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfEvent = new Date(EVENT_DATE.getFullYear(), EVENT_DATE.getMonth(), EVENT_DATE.getDate());
+  return Math.round((startOfEvent - startOfToday) / (1000*60*60*24));
+}
+
+function renderCountdownBanner(){
+  const el = document.getElementById('countdownBanner');
+  if(!el) return;
+  const days = getDaysToEvent();
+
+  if(days < 0){
+    el.classList.remove('show');
+    return;
+  }
+  el.classList.add('show');
+  if(days === 0){
+    el.classList.add('cd-today');
+    el.innerHTML = `🎉 Kalasandhya is today! Doors open ${formatClockTime((()=>{const d=new Date();d.setHours(SHOW_START_TIME.hour,SHOW_START_TIME.minute,0,0);return d;})())} at ${VENUE_NAME}.`;
+  } else {
+    el.classList.remove('cd-today');
+    el.innerHTML = `<span class="cd-num">${days}</span> day${days===1?'':'s'} to go until Kalasandhya 2026 — ${VENUE_NAME}`;
+  }
+}
+
+// ===================== WEATHER + VENUE BLOCK =====================
+let weatherCache = null;
+async function fetchEventWeather(){
+  if(weatherCache !== null) return weatherCache;
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${VENUE_LAT}&longitude=${VENUE_LON}&current_weather=true&temperature_unit=celsius`;
+    const res = await fetch(url);
+    const data = await res.json();
+    weatherCache = data.current_weather || null;
+  }catch(e){
+    console.error('weather fetch failed', e);
+    weatherCache = null;
+  }
+  return weatherCache;
+}
+
+const WEATHER_CODE_LABELS = {
+  0:'Clear sky', 1:'Mostly clear', 2:'Partly cloudy', 3:'Overcast',
+  45:'Foggy', 48:'Foggy', 51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+  61:'Light rain', 63:'Rain', 65:'Heavy rain', 71:'Light snow', 73:'Snow', 75:'Heavy snow',
+  80:'Rain showers', 81:'Rain showers', 82:'Heavy showers', 95:'Thunderstorm', 96:'Thunderstorm', 99:'Thunderstorm'
+};
+
+async function renderWeatherVenueBlock(){
+  const mount = document.getElementById('weatherVenueMount');
+  if(!mount) return;
+  const days = getDaysToEvent();
+  if(days < 0 || days > 7){ mount.innerHTML = ''; return; }
+
+  mount.innerHTML = `
+    <div class="weather-venue-panel">
+      <div class="weather-block" id="weatherBlockInner">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:26px;height:26px;color:var(--marigold-dark);"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41 -1.41M17.66 6.34l1.41 -1.41"/></svg>
+        <span style="font-size:12.5px;color:var(--ink-soft);">Loading weather for ${VENUE_NAME}…</span>
+      </div>
+      <div class="weather-venue-divider"></div>
+      <a class="venue-link" href="${VENUE_MAPS_URL}" target="_blank" rel="noopener">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7 -6.1 -7 -11a7 7 0 0 1 14 0c0 4.9 -7 11 -7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        ${VENUE_NAME} — get directions
+      </a>
+    </div>
+  `;
+
+  const weather = await fetchEventWeather();
+  const inner = document.getElementById('weatherBlockInner');
+  if(!inner) return; // tab may have changed by the time this resolves
+  if(!weather){
+    inner.innerHTML = `<span style="font-size:12.5px;color:var(--ink-soft);">Weather unavailable right now.</span>`;
+    return;
+  }
+  const label = WEATHER_CODE_LABELS[weather.weathercode] || 'Conditions';
+  inner.innerHTML = `
+    <span class="weather-temp">${Math.round(weather.temperature)}°C</span>
+    <span class="weather-desc">${label} today, near ${VENUE_NAME}${days===0 ? ' — event day!' : ` · ${days} day${days===1?'':'s'} out`}</span>
+  `;
+}
+
+// ===================== SPONSORSHIP MILESTONE CONFETTI =====================
+const SPONSOR_MILESTONES = [500, 1000, 2500, 5000, 7500, 10000];
+const MILESTONE_STORAGE_KEY = 'kalasandhya_milestone_reached_v1';
+
+function checkSponsorMilestone(){
+  const total = getTotalSponsorshipAmount();
+  let lastSeen = 0;
+  try{ lastSeen = parseInt(localStorage.getItem(MILESTONE_STORAGE_KEY) || '0', 10) || 0; }catch(e){}
+  const justReached = SPONSOR_MILESTONES.filter(m => total >= m && m > lastSeen);
+  if(justReached.length){
+    const newest = justReached[justReached.length-1];
+    try{ localStorage.setItem(MILESTONE_STORAGE_KEY, String(newest)); }catch(e){}
+    triggerConfetti();
+    showToast(`🎉 Sponsorship just passed ${formatCurrency(newest)}!`);
+  }
+}
+
+function triggerConfetti(){
+  let canvas = document.getElementById('confettiCanvas');
+  if(!canvas){
+    canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    document.body.appendChild(canvas);
+  }
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#E8943A', '#C7972A', '#7A1F2B', '#FBF4E6', '#3F8F4F'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random()*canvas.width,
+    y: -20 - Math.random()*canvas.height*0.3,
+    size: 5 + Math.random()*6,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    speedY: 2 + Math.random()*3,
+    speedX: -1.5 + Math.random()*3,
+    rotation: Math.random()*360,
+    rotationSpeed: -8 + Math.random()*16
+  }));
+  const start = Date.now();
+  const duration = 3200;
+
+  function frame(){
+    const elapsed = Date.now() - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p=>{
+      p.x += p.speedX;
+      p.y += p.speedY;
+      p.rotation += p.rotationSpeed;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      ctx.restore();
+    });
+    if(elapsed < duration){
+      requestAnimationFrame(frame);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(frame);
 }
 
 // ===================== DASHBOARD TAB =====================
@@ -2667,6 +2887,8 @@ function renderDashboardTab(){
       <h2>Dashboard</h2>
     </div>
 
+    <div id="weatherVenueMount"></div>
+
     <div class="stat-pills">
       <div class="stat-pill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg> <b>${total}</b> active programs</div>
       <div class="stat-pill ${inputsReady===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg> <b>${inputsReady}/${total}</b> inputs received (${pct(inputsReady,total)}%)</div>
@@ -2686,6 +2908,8 @@ function renderDashboardTab(){
       <div class="dash-coord-list">${coordRows || '<div class="dash-empty">No programs assigned to coordinators yet.</div>'}</div>
     </div>
   `;
+
+  renderWeatherVenueBlock();
 }
 
 // ===================== PRESENTER VIEW TAB =====================
