@@ -1059,14 +1059,18 @@
     border:1px solid var(--line);
     border-radius:9px;
     padding:10px 14px;
-    display:flex;
-    flex-wrap:wrap;
+    display:grid;
+    grid-template-columns:1fr 150px auto;
     align-items:center;
-    gap:6px 12px;
+    gap:6px 14px;
   }
-  .dash-attn-name{font-weight:700;color:var(--ink);font-size:13.5px;flex:1 1 200px;}
+  .dash-attn-name{font-weight:700;color:var(--ink);font-size:13.5px;}
   .dash-attn-meta{font-size:12px;color:var(--ink-soft);}
-  .dash-attn-reasons{display:flex;gap:5px;flex-wrap:wrap;}
+  .dash-attn-reasons{display:flex;gap:5px;flex-wrap:nowrap;}
+  @media(max-width:600px){
+    .dash-attn-row{grid-template-columns:1fr;gap:5px;}
+    .dash-attn-reasons{flex-wrap:wrap;}
+  }
   .dash-empty{color:var(--ink-soft);font-size:13.5px;padding:8px 2px;}
   .dash-coord-row{
     border:1px solid var(--line);
@@ -1215,7 +1219,59 @@
     z-index:9999;
   }
 
-  .empty-state{
+  /* WhatsApp nudge panel */
+  .wa-panel{ display:flex; flex-direction:column; gap:10px; }
+  .wa-row{
+    background:var(--ivory); border:1px solid var(--line);
+    border-radius:9px; padding:12px 14px;
+    display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap;
+  }
+  .wa-info{ flex:1 1 200px; }
+  .wa-name{ font-weight:700; font-size:13.5px; color:var(--ink); }
+  .wa-meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .wa-tags{ display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+  .wa-copy-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:700; padding:7px 14px;
+    border-radius:7px; border:1.5px solid #25D366;
+    background:#25D366; color:#fff; cursor:pointer; font-family:inherit;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .wa-copy-btn:hover{ background:#1ebe5d; border-color:#1ebe5d; }
+  .wa-copy-btn.copied{ background:#2C5836; border-color:#2C5836; }
+  .wa-deadline-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .wa-deadline-row label{ font-size:13px; font-weight:600; color:var(--ink); }
+  .wa-deadline-input{
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--ink);
+    border:1.5px solid var(--line); border-radius:6px; padding:5px 10px;
+    background:var(--white);
+  }
+  .wa-deadline-input:focus{ outline:none; border-color:var(--marigold); }
+  .wa-all-clear{ color:var(--ink-soft); font-size:13.5px; padding:8px 2px; }
+
+  /* Print */
+  @media print {
+    body > *{ display:none !important; }
+    #printFrame{ display:block !important; position:static !important; }
+  }
+  #printFrame{
+    display:none;
+    font-family:'Cormorant Garamond', Georgia, serif;
+    padding:24px 32px;
+    color:#1a1a1a;
+  }
+  .print-header{ text-align:center; margin-bottom:24px; border-bottom:2px solid #C7972A; padding-bottom:14px; }
+  .print-header h1{ font-size:34px; margin:0 0 4px; color:#7A1F2B; font-weight:700; }
+  .print-header p{ font-size:13px; color:#666; margin:3px 0 0; }
+  .print-row{ display:flex; align-items:flex-start; gap:14px; padding:9px 0; border-bottom:1px solid #eee; break-inside:avoid; }
+  .print-row.print-admin{ opacity:0.55; }
+  .print-num{ font-size:12px; color:#999; width:22px; flex-shrink:0; padding-top:3px; text-align:right; }
+  .print-info{ flex:1; }
+  .print-program{ font-size:16px; font-weight:700; color:#7A1F2B; line-height:1.2; }
+  .print-participants{ font-size:12px; color:#555; margin-top:3px; }
+  .print-time{ font-size:13px; font-weight:700; color:#A8631C; white-space:nowrap; padding-top:2px; }
+
+
     text-align:center;
     padding:60px 20px;
     color:var(--ink-soft);
@@ -1453,6 +1509,8 @@
   </div>
 </div>
 
+<div id="printFrame"></div>
+
 <div class="countdown-banner" id="countdownBanner"></div>
 
 <div class="poster-section" id="posterSection">
@@ -1484,6 +1542,7 @@
   <button class="tab-btn" data-tab="contacts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Program contacts <span class="count" id="countContacts">0</span></button>
   <button class="tab-btn" data-tab="participants"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>Participants <span class="count" id="countParticipants">0</span></button>
   <button class="tab-btn" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
+  <button class="tab-btn" data-tab="whatsapp"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a0.5 0.5 0 0 0 1 0V9a0.5 0.5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a0.5 0.5 0 0 0 0 -1H14a0.5 0.5 0 0 0 0 1"/></svg>WhatsApp nudges</button>
   <button class="tab-btn" data-tab="sponsors"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg>Sponsors <span class="count" id="countSponsors">0</span></button>
   <button class="tab-btn" data-tab="final"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6h9M11 12h9M11 18h9"/></svg>Final running order <span class="count" id="countFinal">0</span></button>
   <button class="tab-btn" data-tab="deleted"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/><path d="M10 11v6M14 11v6"/></svg>Deleted programs <span class="count" id="countDeleted">0</span></button>
@@ -1512,6 +1571,10 @@
   </div>
 
   <div id="tab-sequence" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-whatsapp" style="display:none;">
     <div class="loading-screen">Loading…</div>
   </div>
 
@@ -1971,6 +2034,7 @@ function refreshActiveTab(){
   if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
   if(activeTab==='contacts') renderContactsRows();
   if(activeTab==='participants') renderParticipantsTab();
+  if(activeTab==='whatsapp') renderWhatsappTab();
   if(activeTab==='sponsors') renderSponsorsTab();
   if(activeTab==='sequence') renderSequenceTab();
   if(activeTab==='final') renderFinalTab();
@@ -2084,7 +2148,7 @@ function initTabs(){
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const tab = btn.dataset.tab;
-      ['dashboard','presenter','programs-confirmed','contacts','participants','sponsors','sequence','final','deleted'].forEach(t=>{
+      ['dashboard','presenter','programs-confirmed','contacts','participants','whatsapp','sponsors','sequence','final','deleted'].forEach(t=>{
         document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
       });
       if(tab==='dashboard') renderDashboardTab();
@@ -2092,6 +2156,7 @@ function initTabs(){
       if(tab==='programs-confirmed') renderProgramsConfirmedTab();
       if(tab==='contacts') renderContactsTab();
       if(tab==='participants') renderParticipantsTab();
+      if(tab==='whatsapp') renderWhatsappTab();
       if(tab==='sponsors') renderSponsorsTab();
       if(tab==='sequence') renderSequenceTab();
       if(tab==='final') renderFinalTab();
@@ -2466,7 +2531,7 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
           </select>
         </td>
         <td data-label="Program lead">
-          <div style="font-size:13px;font-weight:600;">${escapeHtml(p.submitter)}</div>
+          <span class="pfield submitter-field ${p.submitter && p.submitter!=='—' ? '' : 'pfield-empty'}" data-id="${p.id}" tabindex="0">${p.submitter && p.submitter!=='—' ? escapeHtml(p.submitter) : 'Add lead name'}</span>
         </td>
         <td data-label="Coordinator">
           <select class="coord-select" data-field="coordinator" data-id="${p.id}">
@@ -2526,10 +2591,56 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
       if(e.key === 'Enter') activateProgramNameEdit(span);
     });
   });
+  tbody.querySelectorAll('.submitter-field').forEach(span=>{
+    span.addEventListener('click', ()=> activateSubmitterEdit(span));
+    span.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') activateSubmitterEdit(span);
+    });
+  });
 }
 
 function renderProgramsConfirmedRows(){
   renderProgramRowsInto('programsConfirmedTbody', 'programsConfirmedEmptyState', confirmedFilters, 'Y');
+}
+
+function activateSubmitterEdit(span){
+  if(span.querySelector('input')) return;
+  const id = span.dataset.id;
+  const p = state.programs.find(p=>p.id===id);
+  if(!p) return;
+  const currentValue = (p.submitter && p.submitter!=='—') ? p.submitter : '';
+
+  span.classList.remove('pfield-empty');
+  span.innerHTML = '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentValue;
+  input.placeholder = 'Lead name';
+  input.className = 'pfield-input';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if(committed) return;
+    committed = true;
+    const raw = input.value.trim();
+    p.submitter = raw || '—';
+    saveProgramsDebounced();
+    renderBothProgramsTabsIfVisible();
+  }
+  function cancel(){
+    if(committed) return;
+    committed = true;
+    renderBothProgramsTabsIfVisible();
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); commit(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancel(); }
+  });
 }
 
 function activateProgramNameEdit(span){
@@ -3438,6 +3549,130 @@ function activateParticipantFieldEdit(span){
   });
 }
 
+// ===================== WHATSAPP NUDGES TAB =====================
+let waDeadline = '15 July';
+
+function buildWhatsAppMessage(p, deadline){
+  const pending = [];
+  if(p.participantsReceived !== 'Y') pending.push('participant names');
+  if(p.avReceived !== 'Y') pending.push('audio/video tracks');
+  if(pending.length === 0) return null;
+  const what = pending.length === 2
+    ? 'participant names and audio/video tracks'
+    : pending[0];
+  return `Hi ${escapeHtml(p.submitter)},\n\nWe are still waiting on your *${what}* for *${p.programName}* at Kalasandhya 2026.\n\nPlease ensure this is submitted by *${deadline}* so we can finalise the running order and ensure everything is seamless on the day.\n\nThank you for being a part of Kalasandhya — we can't wait to celebrate Onam together! 🌸\n\nWarm regards,\nWMCG Committee`;
+}
+
+function renderWhatsappTab(){
+  const root = document.getElementById('tab-whatsapp');
+  const active = state.programs.filter(p=>!p.withdrawn && !isEffectivelyAdminItem(p));
+  const needsNudge = active.filter(p=>p.participantsReceived!=='Y' || p.avReceived!=='Y');
+
+  root.innerHTML = `
+    <div class="final-header">
+      <div class="label">Kalasandhya 2026</div>
+      <h2>WhatsApp nudges</h2>
+    </div>
+    <div class="panel-hint" style="margin-bottom:14px;font-size:13px;color:var(--ink-soft);">
+      One message per program lead — copy and paste straight into WhatsApp. Only programs still waiting on something are shown.
+    </div>
+    <div class="wa-deadline-row">
+      <label for="waDeadlineInput">Submission deadline:</label>
+      <input type="text" id="waDeadlineInput" class="wa-deadline-input" value="${escapeHtml(waDeadline)}" placeholder="e.g. 15 July">
+    </div>
+    <div class="wa-panel" id="waPanel">
+      ${needsNudge.length === 0
+        ? `<div class="wa-all-clear">🎉 Nothing to nudge — all programs have participants and AV confirmed.</div>`
+        : needsNudge.map(p=>{
+            const pending = [];
+            if(p.participantsReceived!=='Y') pending.push('Participants Pending');
+            if(p.avReceived!=='Y') pending.push('AV Pending');
+            return `
+              <div class="wa-row" data-id="${p.id}">
+                <div class="wa-info">
+                  <div class="wa-name">${escapeHtml(p.programName)}</div>
+                  <div class="wa-meta">Lead: ${escapeHtml(p.submitter||'—')}${p.submitterPhone ? ' · ' + escapeHtml(p.submitterPhone) : ''}</div>
+                  <div class="wa-tags">${pending.map(t=>`<span class="badge-pending">${t}</span>`).join('')}</div>
+                </div>
+                <button class="wa-copy-btn" data-id="${p.id}">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9L3 21"/></svg>
+                  Copy message
+                </button>
+              </div>
+            `;
+          }).join('')
+      }
+    </div>
+  `;
+
+  document.getElementById('waDeadlineInput').addEventListener('input', e=>{
+    waDeadline = e.target.value;
+  });
+
+  root.querySelectorAll('.wa-copy-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = state.programs.find(pr=>pr.id===btn.dataset.id);
+      if(!p) return;
+      const msg = buildWhatsAppMessage(p, waDeadline);
+      if(!msg) return;
+      // Strip escapeHtml for clipboard — use plain text
+      const plain = msg.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+      navigator.clipboard.writeText(plain).then(()=>{
+        btn.classList.add('copied');
+        btn.textContent = '✓ Copied!';
+        setTimeout(()=>{ btn.classList.remove('copied'); btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9L3 21"/></svg> Copy message`; }, 2000);
+      }).catch(()=>showToast('Could not copy — please copy manually'));
+    });
+  });
+}
+
+// ===================== PRINT RUNNING ORDER =====================
+function printRunningOrder(){
+  const frame = document.getElementById('printFrame');
+  if(!frame) return;
+
+  const times = computeRunSheetTimes();
+  const showStartTime = (()=>{ const d=new Date(); d.setHours(SHOW_START_TIME.hour,SHOW_START_TIME.minute,0,0); return d; })();
+  const showEndTime = times.length ? times[times.length-1].endTime : null;
+
+  const rows = state.sequence.map((item, idx)=>{
+    const p = state.programs.find(pr=>pr.id===item.programId);
+    if(!p) return '';
+    const t = times[idx];
+    const timeStr = t ? formatClockTime(t.startTime)+' – '+formatClockTime(t.endTime) : '';
+    if(item.type==='admin'){
+      return `
+        <div class="print-row print-admin">
+          <div class="print-num">${idx+1}</div>
+          <div class="print-info">
+            <div class="print-program">${escapeHtml(p.programName)}</div>
+          </div>
+          <div class="print-time">${timeStr}</div>
+        </div>`;
+    }
+    const participantList = (state.participants[p.id]||[]).map(pt=>escapeHtml(pt.name)).join(', ');
+    return `
+      <div class="print-row">
+        <div class="print-num">${idx+1}</div>
+        <div class="print-info">
+          <div class="print-program">${escapeHtml(p.programName)}</div>
+          ${participantList ? `<div class="print-participants">${participantList}</div>` : ''}
+        </div>
+        <div class="print-time">${timeStr}</div>
+      </div>`;
+  }).join('');
+
+  frame.innerHTML = `
+    <div class="print-header">
+      <h1>Kalasandhya 2026</h1>
+      <p>WMCG Onam Celebrations &nbsp;·&nbsp; ${VENUE_NAME} &nbsp;·&nbsp; 8 August 2026, ${formatClockTime(showStartTime)}${showEndTime ? ' – est. '+formatClockTime(showEndTime) : ''}</p>
+    </div>
+    ${rows}
+  `;
+
+  window.print();
+}
+
 // ===================== SPONSORS TAB =====================
 const TIERS = ['Platinum', 'Gold', 'Silver', 'Bronze'];
 const tierMeta = {
@@ -3926,7 +4161,7 @@ function renderFinalTab(){
         <div class="fnum">${idx+1}</div>
         <div class="finfo">
           <div class="ft">${escapeHtml(p.programName)}</div>
-          <div class="fs">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>
+          <div class="fs">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}</div>
         </div>
         ${timingHtml}
         <div class="fstatus">${statusBadge}</div>
@@ -3954,7 +4189,7 @@ function renderFinalTab(){
     </div>
   `;
 
-  document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+  document.getElementById('printBtn').addEventListener('click', printRunningOrder);
   document.getElementById('exportBtn').addEventListener('click', exportData);
   document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
   document.getElementById('importFile').addEventListener('change', importData);
