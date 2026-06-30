@@ -1027,6 +1027,110 @@
     font-family:inherit;
   }
   .btn-secondary:hover{border-color:var(--marigold);}
+  .btn-secondary:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn-secondary:disabled:hover{border-color:var(--line);}
+
+  .btn-primary{
+    border:1.5px solid var(--marigold);
+    background:var(--marigold);
+    color:var(--white);
+    padding:9px 18px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn-primary:hover{background:var(--marigold-dark);border-color:var(--marigold-dark);}
+  .btn-primary:disabled{opacity:0.45;cursor:not-allowed;background:var(--marigold);border-color:var(--marigold);}
+
+  /* Dashboard tab */
+  .dash-attn-list, .dash-coord-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .dash-attn-row{
+    background:var(--ivory);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 14px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px 12px;
+  }
+  .dash-attn-name{font-weight:700;color:var(--ink);font-size:13.5px;flex:1 1 200px;}
+  .dash-attn-meta{font-size:12px;color:var(--ink-soft);}
+  .dash-attn-reasons{display:flex;gap:6px;flex-wrap:wrap;}
+  .dash-empty{color:var(--ink-soft);font-size:13.5px;padding:8px 2px;}
+  .dash-coord-row{
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:10px 14px;
+  }
+  .dash-coord-name{font-weight:700;color:var(--maroon);font-size:13.5px;margin-bottom:6px;}
+  .dash-coord-bar-wrap{display:flex;align-items:center;gap:10px;}
+  .dash-coord-bar{flex:1;height:8px;border-radius:99px;background:#EFE6D6;overflow:hidden;}
+  .dash-coord-bar-fill{height:100%;background:var(--marigold);border-radius:99px;}
+  .dash-coord-pct{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .dash-coord-pending{font-size:12px;color:var(--marigold-dark);margin-top:6px;}
+
+  /* Presenter view */
+  .presenter-stage{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .presenter-now-card{
+    background:var(--maroon);
+    color:var(--ivory);
+    border-radius:var(--radius-lg);
+    padding:28px 26px;
+    text-align:center;
+  }
+  .presenter-next-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .presenter-next-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:18px 16px;
+    text-align:center;
+  }
+  .presenter-label{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    opacity:0.75;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  .presenter-now-card .presenter-title{font-size:clamp(28px,5vw,44px);font-family:'Cormorant Garamond', Georgia, serif;font-weight:700;line-height:1.15;}
+  .presenter-next-card .presenter-title{font-size:20px;font-family:'Cormorant Garamond', Georgia, serif;font-weight:700;color:var(--maroon);}
+  .presenter-sub{font-size:13px;opacity:0.85;margin-top:6px;}
+  .presenter-next-card .presenter-sub{color:var(--ink-soft);opacity:1;}
+  .presenter-time{font-size:14px;font-weight:700;margin-top:12px;opacity:0.9;}
+  .presenter-next-card .presenter-time{color:var(--marigold-dark);}
+  .presenter-empty{color:var(--ink-soft);font-size:13.5px;padding:10px 0;}
+  .presenter-controls{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .presenter-controls .btn-primary, .presenter-controls .btn-secondary{padding:13px 26px;font-size:14.5px;}
+  .presenter-hint{text-align:center;font-size:12px;color:var(--ink-soft);}
+  @media (max-width: 640px){
+    .presenter-next-row{grid-template-columns:1fr;}
+  }
 
   .empty-state{
     text-align:center;
@@ -1289,7 +1393,9 @@
 </div>
 
 <div class="tabbar" id="tabbar">
-  <button class="tab-btn active" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs <span class="count" id="countProgramsConfirmed">0</span></button>
+  <button class="tab-btn active" data-tab="dashboard"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</button>
+  <button class="tab-btn" data-tab="presenter"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Presenter view</button>
+  <button class="tab-btn" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs <span class="count" id="countProgramsConfirmed">0</span></button>
   <button class="tab-btn" data-tab="contacts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Program contacts <span class="count" id="countContacts">0</span></button>
   <button class="tab-btn" data-tab="participants"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>Participants <span class="count" id="countParticipants">0</span></button>
   <button class="tab-btn" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
@@ -1300,7 +1406,15 @@
 
 <div class="container">
 
-  <div id="tab-programs-confirmed">
+  <div id="tab-dashboard">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-presenter" style="display:none;">
+    <div class="loading-screen">Loading…</div>
+  </div>
+
+  <div id="tab-programs-confirmed" style="display:none;">
     <div class="loading-screen">Loading programs…</div>
   </div>
 
@@ -1382,6 +1496,7 @@ let DOC_PROGRAMS = null;
 let DOC_SEQUENCE = null;
 let DOC_SPONSORS = null;
 let DOC_PARTICIPANTS = null;
+let DOC_LIVE = null;
 
 async function initFirebase(){
   if(!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") return;
@@ -1401,6 +1516,7 @@ async function initFirebase(){
     DOC_SEQUENCE = doc(db, 'kalasandhya', 'sequence');
     DOC_SPONSORS = doc(db, 'kalasandhya', 'sponsors');
     DOC_PARTICIPANTS = doc(db, 'kalasandhya', 'participants');
+    DOC_LIVE = doc(db, 'kalasandhya', 'live');
     firebaseReady = true;
   }catch(e){
     console.error('Firebase failed to load, falling back to local storage', e);
@@ -1506,6 +1622,7 @@ let state = {
   sequence: [],
   sponsors: [],
   participants: {},
+  live: { currentIndex: -1 },
   loaded: false
 };
 
@@ -1513,6 +1630,7 @@ const STORAGE_KEY_PROGRAMS = 'kalasandhya_programs_v1';
 const STORAGE_KEY_SEQUENCE = 'kalasandhya_sequence_v1';
 const STORAGE_KEY_SPONSORS = 'kalasandhya_sponsors_v1';
 const STORAGE_KEY_PARTICIPANTS = 'kalasandhya_participants_v1';
+const STORAGE_KEY_LIVE = 'kalasandhya_live_v1';
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -1533,6 +1651,8 @@ let suppressNextProgramsSnapshot = false;
 let suppressNextSequenceSnapshot = false;
 let suppressNextSponsorsSnapshot = false;
 let suppressNextParticipantsSnapshot = false;
+let suppressNextLiveSnapshot = false;
+let unsubLive = null;
 
 async function loadState(){
   if(firebaseReady){
@@ -1581,7 +1701,7 @@ function migrateSequence(sequence){
 }
 
 function loadStateLocal(){
-  let programs = null, sequence = null, sponsors = null, participants = null;
+  let programs = null, sequence = null, sponsors = null, participants = null, live = null;
   try{
     const raw = localStorage.getItem(STORAGE_KEY_PROGRAMS);
     if(raw) programs = JSON.parse(raw);
@@ -1597,6 +1717,10 @@ function loadStateLocal(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY_PARTICIPANTS);
     if(raw) participants = JSON.parse(raw);
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY_LIVE);
+    if(raw) live = JSON.parse(raw);
   }catch(e){}
 
   if(!programs){
@@ -1616,6 +1740,7 @@ function loadStateLocal(){
   }
   state.sponsors = sponsors || [];
   state.participants = participants || {};
+  state.live = live || { currentIndex: -1 };
   state.loaded = true;
 }
 
@@ -1731,6 +1856,16 @@ function loadStateFirebase(){
       renderFirebaseStatusBanner();
     });
 
+    unsubLive = onSnapshot(DOC_LIVE, (snap)=>{
+      if(suppressNextLiveSnapshot){ suppressNextLiveSnapshot = false; }
+      else {
+        state.live = (snap.exists() && snap.data()) ? snap.data() : { currentIndex: -1 };
+      }
+      refreshActiveTab();
+    }, (err)=>{
+      console.error('Firestore live sync error', err);
+    });
+
     setTimeout(()=>{ if(!resolved){ resolved = true; state.loaded = true; resolve(); } }, 4000);
   });
 }
@@ -1738,6 +1873,8 @@ function loadStateFirebase(){
 function refreshActiveTab(){
   updateCounts();
   const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if(activeTab==='dashboard') renderDashboardTab();
+  if(activeTab==='presenter') renderPresenterTab();
   if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
   if(activeTab==='contacts') renderContactsRows();
   if(activeTab==='participants') renderParticipantsTab();
@@ -1800,6 +1937,18 @@ function saveParticipantsRemote(){
     catch(e){ console.error('save participants failed', e); }
   }
 }
+function saveLiveRemote(){
+  if(firebaseReady){
+    suppressNextLiveSnapshot = true;
+    setDoc(DOC_LIVE, state.live).catch(e=>{
+      console.error('save live status failed', e);
+      showToast('Could not save — check your connection');
+    });
+  } else {
+    try{ localStorage.setItem(STORAGE_KEY_LIVE, JSON.stringify(state.live)); }
+    catch(e){ console.error('save live status failed', e); }
+  }
+}
 
 // ===================== POOKALAM RING SVG =====================
 function renderPookalamRing(){
@@ -1842,9 +1991,11 @@ function initTabs(){
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const tab = btn.dataset.tab;
-      ['programs-confirmed','contacts','participants','sponsors','sequence','final','deleted'].forEach(t=>{
+      ['dashboard','presenter','programs-confirmed','contacts','participants','sponsors','sequence','final','deleted'].forEach(t=>{
         document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
       });
+      if(tab==='dashboard') renderDashboardTab();
+      if(tab==='presenter') renderPresenterTab();
       if(tab==='programs-confirmed') renderProgramsConfirmedTab();
       if(tab==='contacts') renderContactsTab();
       if(tab==='participants') renderParticipantsTab();
@@ -2452,8 +2603,178 @@ function computeRunSheetTimes(){
   });
 }
 
-// ===================== PROGRAM CONTACTS TAB =====================
-let contactsSearch = '';
+// ===================== DASHBOARD TAB =====================
+function getProgramsNeedingAttention(){
+  const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
+  return active.filter(p=>{
+    const hasParticipants = (state.participants[p.id] || []).length > 0;
+    return p.isPending || p.inputsReceived !== 'Y' || !hasParticipants;
+  });
+}
+
+function renderDashboardTab(){
+  const root = document.getElementById('tab-dashboard');
+  updateCounts();
+
+  const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
+  const total = active.length;
+  const inputsReady = active.filter(p=>p.inputsReceived==='Y').length;
+  const withParticipants = active.filter(p=>(state.participants[p.id]||[]).length>0).length;
+  const placeholders = active.filter(p=>p.isPending).length;
+  const sponsorshipTotal = getTotalSponsorshipAmount();
+  const needsAttention = getProgramsNeedingAttention();
+
+  const pct = (n,d)=> d===0 ? 0 : Math.round((n/d)*100);
+
+  const coordRows = COORDINATORS.map(name=>{
+    const assigned = active.filter(p=>p.coordinator===name);
+    if(assigned.length===0) return '';
+    const ready = assigned.filter(p=>p.inputsReceived==='Y').length;
+    const percent = pct(ready, assigned.length);
+    const notReady = assigned.filter(p=>p.inputsReceived!=='Y').map(p=>escapeHtml(p.isPending ? 'Pending name' : p.programName));
+    return `
+      <div class="dash-coord-row">
+        <div class="dash-coord-name">${escapeHtml(name)}</div>
+        <div class="dash-coord-bar-wrap">
+          <div class="dash-coord-bar"><div class="dash-coord-bar-fill" style="width:${percent}%;"></div></div>
+          <span class="dash-coord-pct">${ready}/${assigned.length} ready</span>
+        </div>
+        ${notReady.length ? `<div class="dash-coord-pending">Awaiting: ${notReady.slice(0,3).join(', ')}${notReady.length>3 ? ` +${notReady.length-3} more` : ''}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const unassignedCount = active.filter(p=>!p.coordinator).length;
+
+  const attentionRows = needsAttention.length ? needsAttention.map(p=>{
+    const hasParticipants = (state.participants[p.id]||[]).length>0;
+    const reasons = [];
+    if(p.isPending) reasons.push('name pending');
+    if(p.inputsReceived!=='Y') reasons.push('inputs not received');
+    if(!hasParticipants) reasons.push('no participants entered');
+    return `
+      <div class="dash-attn-row">
+        <div class="dash-attn-name">${escapeHtml(p.isPending ? p.programName : p.programName)}</div>
+        <div class="dash-attn-meta">${escapeHtml(p.category)}${p.coordinator ? ' · '+escapeHtml(p.coordinator) : ' · Unassigned'}</div>
+        <div class="dash-attn-reasons">${reasons.map(r=>`<span class="badge-pending">${r}</span>`).join(' ')}</div>
+      </div>
+    `;
+  }).join('') : `<div class="dash-empty">Everything's in good shape — no programs need attention right now.</div>`;
+
+  root.innerHTML = `
+    <div class="final-header">
+      <div class="label">Kalasandhya 2026</div>
+      <h2>Dashboard</h2>
+    </div>
+
+    <div class="stat-pills">
+      <div class="stat-pill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg> <b>${total}</b> active programs</div>
+      <div class="stat-pill ${inputsReady===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg> <b>${inputsReady}/${total}</b> inputs received (${pct(inputsReady,total)}%)</div>
+      <div class="stat-pill ${withParticipants===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/></svg> <b>${withParticipants}/${total}</b> have participants entered (${pct(withParticipants,total)}%)</div>
+      ${placeholders>0 ? `<div class="stat-pill warn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg> <b>${placeholders}</b> placeholder name${placeholders===1?'':'s'} to finalise</div>` : ''}
+      ${unassignedCount>0 ? `<div class="stat-pill warn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg> <b>${unassignedCount}</b> unassigned coordinator${unassignedCount===1?'':'s'}</div>` : ''}
+      <div class="stat-pill ok"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg> <b>${formatCurrency(sponsorshipTotal)}</b> raised in sponsorship</div>
+    </div>
+
+    <div class="panel">
+      <h3>Needs attention${needsAttention.length ? ` (${needsAttention.length})` : ''}</h3>
+      <div class="dash-attn-list">${attentionRows}</div>
+    </div>
+
+    <div class="panel">
+      <h3>By coordinator</h3>
+      <div class="dash-coord-list">${coordRows || '<div class="dash-empty">No programs assigned to coordinators yet.</div>'}</div>
+    </div>
+  `;
+}
+
+// ===================== PRESENTER VIEW TAB =====================
+function getPresenterSequenceItems(){
+  const times = computeRunSheetTimes();
+  return state.sequence.map((item, idx)=>{
+    const p = state.programs.find(pr=>pr.id===item.programId);
+    const t = times[idx];
+    return { idx, item, p, t };
+  }).filter(row=>row.p);
+}
+
+function setLiveIndex(newIndex){
+  const rows = getPresenterSequenceItems();
+  const clamped = Math.max(-1, Math.min(newIndex, rows.length - 1));
+  state.live = { currentIndex: clamped };
+  saveLiveRemote();
+  renderPresenterTab();
+}
+
+function renderPresenterTab(){
+  const root = document.getElementById('tab-presenter');
+  updateCounts();
+
+  const rows = getPresenterSequenceItems();
+  if(rows.length===0){
+    root.innerHTML = `
+      <div class="empty-state">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <p>No running order yet. Build one in the Sequence builder tab.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const currentIndex = (state.live && typeof state.live.currentIndex === 'number') ? state.live.currentIndex : -1;
+  const current = rows.find(r=>r.idx===currentIndex);
+  const upNext = rows.filter(r=>r.idx>currentIndex).slice(0,2);
+  const isBeforeStart = currentIndex < 0;
+  const isFinished = currentIndex >= rows.length - 1 && rows.length>0 && currentIndex === rows[rows.length-1].idx;
+
+  const renderItemBlock = (row, kind)=>{
+    if(!row) return `<div class="presenter-empty">${kind==='now' ? 'Not started yet' : '—'}</div>`;
+    const { p, t } = row;
+    const name = p.isAdminItem ? p.programName : (p.isPending ? p.programName : p.programName);
+    return `
+      <div class="presenter-title">${escapeHtml(name)}</div>
+      ${!p.isAdminItem ? `<div class="presenter-sub">${escapeHtml(p.category)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>` : `<div class="presenter-sub">Admin item</div>`}
+      <div class="presenter-time">${t ? formatClockTime(t.startTime)+' – '+formatClockTime(t.endTime) : ''}</div>
+    `;
+  };
+
+  root.innerHTML = `
+    <div class="final-header">
+      <div class="label">Kalasandhya 2026</div>
+      <h2>Presenter view</h2>
+    </div>
+
+    <div class="presenter-stage">
+      <div class="presenter-now-card">
+        <div class="presenter-label">${isBeforeStart ? 'About to start' : 'Now showing'}</div>
+        ${renderItemBlock(current, 'now')}
+      </div>
+      <div class="presenter-next-row">
+        ${upNext.length ? upNext.map((row,i)=>`
+          <div class="presenter-next-card">
+            <div class="presenter-label">${i===0 ? 'Up next' : 'After that'}</div>
+            ${renderItemBlock(row, 'next')}
+          </div>
+        `).join('') : `<div class="presenter-next-card"><div class="presenter-label">Up next</div><div class="presenter-empty">${isFinished ? "That's the last item" : '—'}</div></div>`}
+      </div>
+    </div>
+
+    <div class="presenter-controls">
+      <button class="btn-secondary" id="presenterBackBtn" ${currentIndex<0 ? 'disabled' : ''}>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg> Back
+      </button>
+      <button class="btn-primary" id="presenterNextBtn" ${currentIndex>=rows.length-1 ? 'disabled' : ''}>
+        ${isBeforeStart ? 'Start show' : 'Mark done, advance'} <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+      </button>
+    </div>
+    <div class="presenter-hint">This view syncs live across every device with the app open — handy for whoever's calling the sequence backstage.</div>
+  `;
+
+  document.getElementById('presenterBackBtn').addEventListener('click', ()=>setLiveIndex(currentIndex-1));
+  document.getElementById('presenterNextBtn').addEventListener('click', ()=>setLiveIndex(currentIndex+1));
+}
+
+
 let contactsSort = 'asc';
 
 function renderContactsTab(){
@@ -3325,7 +3646,7 @@ async function init(){
   await initFirebase();
   await loadState();
   updateCounts();
-  renderProgramsConfirmedTab();
+  renderDashboardTab();
   renderFirebaseStatusBanner();
 
   // Cross-tab sync in the same browser, only relevant when running on the
@@ -3338,6 +3659,8 @@ async function init(){
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='programs-confirmed') renderProgramsConfirmedTab();
           if(activeTab==='contacts') renderContactsRows();
+          if(activeTab==='dashboard') renderDashboardTab();
+          if(activeTab==='presenter') renderPresenterTab();
           updateCounts();
         }catch(err){}
       }
@@ -3349,6 +3672,8 @@ async function init(){
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='sequence') renderSequenceTab();
           if(activeTab==='final') renderFinalTab();
+          if(activeTab==='presenter') renderPresenterTab();
+          if(activeTab==='dashboard') renderDashboardTab();
           updateCounts();
         }catch(err){}
       }
@@ -3357,6 +3682,7 @@ async function init(){
           state.sponsors = JSON.parse(e.newValue);
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='sponsors') renderSponsorsTab();
+          if(activeTab==='dashboard') renderDashboardTab();
           updateCounts();
         }catch(err){}
       }
@@ -3365,7 +3691,16 @@ async function init(){
           state.participants = JSON.parse(e.newValue);
           const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
           if(activeTab==='participants') renderParticipantsTab();
+          if(activeTab==='dashboard') renderDashboardTab();
           updateCounts();
+        }catch(err){}
+      }
+      if(e.key === STORAGE_KEY_LIVE && e.newValue){
+        try{
+          state.live = JSON.parse(e.newValue);
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if(activeTab==='presenter') renderPresenterTab();
+          if(activeTab==='dashboard') renderDashboardTab();
         }catch(err){}
       }
     });
