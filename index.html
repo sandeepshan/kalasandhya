@@ -1084,8 +1084,8 @@
   .presenter-stage{
     display:flex;
     flex-direction:column;
-    gap:14px;
-    margin-bottom:18px;
+    gap:10px;
+    margin-bottom:14px;
   }
   .presenter-now-card{
     background:var(--maroon);
@@ -1094,18 +1094,17 @@
     padding:28px 26px;
     text-align:center;
   }
-  .presenter-next-row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-  .presenter-next-card{
+  .presenter-up-next{
+    display:flex;
+    align-items:center;
+    gap:10px;
     background:var(--white);
     border:1px solid var(--line);
     border-radius:var(--radius-lg);
-    padding:18px 16px;
-    text-align:center;
+    padding:12px 18px;
   }
+  .presenter-next-name{font-weight:700;color:var(--maroon);font-size:15px;flex:1;}
+  .presenter-next-time{font-size:13px;color:var(--marigold-dark);font-weight:700;}
   .presenter-label{
     font-size:11.5px;
     text-transform:uppercase;
@@ -1113,13 +1112,11 @@
     opacity:0.75;
     margin-bottom:8px;
     font-weight:700;
+    white-space:nowrap;
   }
   .presenter-now-card .presenter-title{font-size:clamp(28px,5vw,44px);font-family:'Cormorant Garamond', Georgia, serif;font-weight:700;line-height:1.15;}
-  .presenter-next-card .presenter-title{font-size:20px;font-family:'Cormorant Garamond', Georgia, serif;font-weight:700;color:var(--maroon);}
   .presenter-sub{font-size:13px;opacity:0.85;margin-top:6px;}
-  .presenter-next-card .presenter-sub{color:var(--ink-soft);opacity:1;}
-  .presenter-time{font-size:14px;font-weight:700;margin-top:12px;opacity:0.9;}
-  .presenter-next-card .presenter-time{color:var(--marigold-dark);}
+  .presenter-time{font-size:15px;font-weight:700;margin-top:12px;opacity:0.9;}
   .presenter-empty{color:var(--ink-soft);font-size:13.5px;padding:10px 0;}
   .presenter-controls{
     display:flex;
@@ -1128,10 +1125,37 @@
     margin-bottom:12px;
   }
   .presenter-controls .btn-primary, .presenter-controls .btn-secondary{padding:13px 26px;font-size:14.5px;}
-  .presenter-hint{text-align:center;font-size:12px;color:var(--ink-soft);}
-  @media (max-width: 640px){
-    .presenter-next-row{grid-template-columns:1fr;}
+  .presenter-hint{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+
+  /* Retro table */
+  .retro-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .retro-table thead th{text-align:left;padding:7px 10px;font-size:11.5px;font-weight:700;color:var(--ink-soft);border-bottom:2px solid var(--line);text-transform:uppercase;letter-spacing:0.04em;}
+  .retro-row td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .retro-row:last-child td{border-bottom:none;}
+  .retro-current td{background:#FFF8EE;}
+  .retro-current .retro-name{font-weight:700;color:var(--maroon);}
+  .retro-done td{opacity:0.6;}
+  .retro-num{color:var(--ink-soft);font-size:12px;text-align:center;}
+  .retro-name{font-weight:600;}
+  .retro-planned{color:var(--ink-soft);}
+  .retro-actual-time{font-weight:700;color:var(--maroon);}
+  .retro-diff{font-size:11px;font-weight:700;padding:2px 6px;border-radius:999px;margin-left:4px;}
+  .retro-diff.late{background:#FDECEA;color:#B71C1C;}
+  .retro-diff.early{background:#E8F5E9;color:#1B5E20;}
+  .retro-time-input{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    padding:4px 8px;
+    width:90px;
+    background:var(--white);
   }
+  .retro-time-input:focus{outline:none;border-color:var(--marigold);}
+  .retro-time-input::-webkit-calendar-picker-indicator{opacity:0.5;cursor:pointer;}
+
 
   /* Countdown banner */
   .countdown-banner{
@@ -2948,14 +2972,25 @@ function getPresenterSequenceItems(){
 function setLiveIndex(newIndex){
   const rows = getPresenterSequenceItems();
   const clamped = Math.max(-1, Math.min(newIndex, rows.length - 1));
-  state.live = { currentIndex: clamped };
+  state.live = { ...state.live, currentIndex: clamped };
   saveLiveRemote();
   renderPresenterTab();
 }
 
+function recordActualTime(idx, value){
+  if(!state.live.actuals) state.live.actuals = {};
+  if(value){
+    state.live.actuals[idx] = value;
+  } else {
+    delete state.live.actuals[idx];
+  }
+  saveLiveRemote();
+  // re-render just the diff spans without full re-render to avoid losing focus
+  updateRetroDiffs();
+}
+
 function renderPresenterTab(){
   const root = document.getElementById('tab-presenter');
-  updateCounts();
 
   const rows = getPresenterSequenceItems();
   if(rows.length===0){
@@ -2969,21 +3004,39 @@ function renderPresenterTab(){
   }
 
   const currentIndex = (state.live && typeof state.live.currentIndex === 'number') ? state.live.currentIndex : -1;
+  const actuals = (state.live && state.live.actuals) ? state.live.actuals : {};
   const current = rows.find(r=>r.idx===currentIndex);
-  const upNext = rows.filter(r=>r.idx>currentIndex).slice(0,2);
+  const nextRow = rows.find(r=>r.idx===currentIndex+1);
   const isBeforeStart = currentIndex < 0;
-  const isFinished = currentIndex >= rows.length - 1 && rows.length>0 && currentIndex === rows[rows.length-1].idx;
+  const isFinished = rows.length>0 && currentIndex >= rows[rows.length-1].idx;
 
-  const renderItemBlock = (row, kind)=>{
-    if(!row) return `<div class="presenter-empty">${kind==='now' ? 'Not started yet' : '—'}</div>`;
-    const { p, t } = row;
-    const name = p.programName;
+  // Run list with planned vs actual
+  const runListRows = rows.map(row=>{
+    const { idx, p, t } = row;
+    const isCurrent = idx === currentIndex;
+    const isDone = idx < currentIndex;
+    const actual = actuals[idx] || '';
+    const plannedEnd = t ? formatClockTime(t.endTime) : '—';
+    let diff = '';
+    if(actual && t){
+      const [ah, am] = actual.split(':').map(Number);
+      const planMins = t.endTime.getHours()*60 + t.endTime.getMinutes();
+      const actMins = ah*60 + am;
+      const delta = actMins - planMins;
+      if(delta !== 0) diff = `<span class="retro-diff ${delta>0?'late':'early'}" data-diff="${idx}">${delta>0?'+':''}${delta}m</span>`;
+    }
     return `
-      <div class="presenter-title">${escapeHtml(name)}</div>
-      ${!isEffectivelyAdminItem(p) ? `<div class="presenter-sub">${escapeHtml(p.category)}${p.coordinator ? ' · Coord: '+escapeHtml(p.coordinator) : ''}</div>` : `<div class="presenter-sub">Admin item</div>`}
-      <div class="presenter-time">${t ? formatClockTime(t.startTime)+' – '+formatClockTime(t.endTime) : ''}</div>
+      <tr class="retro-row ${isCurrent?'retro-current':''} ${isDone?'retro-done':''}">
+        <td class="retro-num">${idx+1}</td>
+        <td class="retro-name">${escapeHtml(p.programName)}</td>
+        <td class="retro-planned">${plannedEnd}</td>
+        <td class="retro-actual">
+          <input type="time" class="retro-time-input" data-idx="${idx}" value="${actual}" placeholder="--:--">
+          ${diff}
+        </td>
+      </tr>
     `;
-  };
+  }).join('');
 
   root.innerHTML = `
     <div class="final-header">
@@ -2993,41 +3046,96 @@ function renderPresenterTab(){
 
     <div class="presenter-stage">
       <div class="presenter-now-card">
-        <div class="presenter-label">${isBeforeStart ? 'About to start' : 'Now showing'}</div>
-        ${renderItemBlock(current, 'now')}
+        <div class="presenter-label">${isBeforeStart ? 'Up first' : isFinished ? 'Show complete' : 'Now showing'}</div>
+        ${current ? `
+          <div class="presenter-title">${escapeHtml(current.p.programName)}</div>
+          ${!isEffectivelyAdminItem(current.p) ? `<div class="presenter-sub">${escapeHtml(current.p.category)}${current.p.coordinator ? ' · '+escapeHtml(current.p.coordinator) : ''}</div>` : `<div class="presenter-sub">Admin item</div>`}
+          <div class="presenter-time">${current.t ? formatClockTime(current.t.startTime)+' – '+formatClockTime(current.t.endTime) : ''}</div>
+        ` : isBeforeStart ? `
+          <div class="presenter-title">${escapeHtml(rows[0].p.programName)}</div>
+          <div class="presenter-sub">${rows[0].t ? 'Starts '+formatClockTime(rows[0].t.startTime) : ''}</div>
+        ` : `<div class="presenter-empty">That's a wrap!</div>`}
       </div>
-      <div class="presenter-next-row">
-        ${upNext.length ? upNext.map((row,i)=>`
-          <div class="presenter-next-card">
-            <div class="presenter-label">${i===0 ? 'Up next' : 'After that'}</div>
-            ${renderItemBlock(row, 'next')}
-          </div>
-        `).join('') : `<div class="presenter-next-card"><div class="presenter-label">Up next</div><div class="presenter-empty">${isFinished ? "That's the last item" : '—'}</div></div>`}
-      </div>
+      ${nextRow ? `
+        <div class="presenter-up-next">
+          <span class="presenter-label">Up next</span>
+          <span class="presenter-next-name">${escapeHtml(nextRow.p.programName)}</span>
+          <span class="presenter-next-time">${nextRow.t ? formatClockTime(nextRow.t.startTime) : ''}</span>
+        </div>
+      ` : ''}
     </div>
 
     <div class="presenter-controls">
       <button class="btn-secondary" id="presenterBackBtn" ${currentIndex<0 ? 'disabled' : ''}>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg> Back
       </button>
-      <button class="btn-primary" id="presenterNextBtn" ${currentIndex>=rows.length-1 ? 'disabled' : ''}>
-        ${isBeforeStart ? 'Start show' : 'Mark done, advance'} <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+      <button class="btn-primary" id="presenterNextBtn" ${isFinished ? 'disabled' : ''}>
+        ${isBeforeStart ? 'Start show' : 'Mark done & next'} <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
       </button>
     </div>
-    <div class="presenter-hint">This view syncs live across every device with the app open — handy for whoever's calling the sequence backstage.</div>
+
+    <div class="panel" style="margin-top:18px;">
+      <h3>Run sheet — Planned vs Actual</h3>
+      <p class="panel-hint">Tap "Record now" when a program finishes to log the actual time for a post-event retro.</p>
+      <div style="overflow-x:auto;">
+        <table class="retro-table">
+          <thead>
+            <tr>
+              <th style="width:5%;">#</th>
+              <th style="width:40%;">Program</th>
+              <th style="width:18%;">Planned end</th>
+              <th style="width:37%;">Actual finish</th>
+            </tr>
+          </thead>
+          <tbody>${runListRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="presenter-hint">Live sync on — all devices stay in step. Actual times are also synced.</div>
   `;
 
   document.getElementById('presenterBackBtn').addEventListener('click', ()=>setLiveIndex(currentIndex-1));
   document.getElementById('presenterNextBtn').addEventListener('click', ()=>setLiveIndex(currentIndex+1));
+  root.querySelectorAll('.retro-time-input').forEach(input=>{
+    input.addEventListener('change', ()=>recordActualTime(parseInt(input.dataset.idx), input.value));
+  });
+}
+
+function updateRetroDiffs(){
+  // Update diff badges without re-rendering the whole tab (preserves input focus)
+  const rows = getPresenterSequenceItems();
+  const actuals = (state.live && state.live.actuals) ? state.live.actuals : {};
+  const times = computeRunSheetTimes();
+  rows.forEach(({idx, t})=>{
+    const actual = actuals[idx] || '';
+    const cell = document.querySelector(`.retro-time-input[data-idx="${idx}"]`)?.closest('td');
+    if(!cell) return;
+    let diffEl = cell.querySelector('.retro-diff');
+    if(actual && t){
+      const [ah, am] = actual.split(':').map(Number);
+      const planMins = t.endTime.getHours()*60 + t.endTime.getMinutes();
+      const actMins = ah*60 + am;
+      const delta = actMins - planMins;
+      if(delta !== 0){
+        if(!diffEl){ diffEl = document.createElement('span'); cell.appendChild(diffEl); }
+        diffEl.className = `retro-diff ${delta>0?'late':'early'}`;
+        diffEl.textContent = (delta>0?'+':'')+delta+'m';
+      } else {
+        if(diffEl) diffEl.remove();
+      }
+    } else {
+      if(diffEl) diffEl.remove();
+    }
+  });
 }
 
 
 function isEffectivelyAdminItem(p){
-  // A program is treated as an admin item only if both the flag is set
-  // AND the category is still "Admin item". Changing the category to
-  // anything else (e.g. "Other") promotes it into the regular program list.
   return p.isAdminItem && p.category === 'Admin item';
 }
+
+// ===================== PROGRAM CONTACTS TAB =====================
+let contactsSearch = '';
 let contactsSort = 'asc';
 
 function renderContactsTab(){
