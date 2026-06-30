@@ -1640,7 +1640,8 @@ function createAdminProgramRecord(label, runTimeSeconds){
     coordinator: '',
     timing: '',
     groupConfirmed: 'Y',
-    inputsReceived: 'Y',
+    participantsReceived: 'Y',
+    avReceived: 'Y',
     withdrawn: false,
     withdrawnAt: null,
     runTimeSeconds: runTimeSeconds != null ? runTimeSeconds : null,
@@ -1669,7 +1670,8 @@ function buildPrograms(){
       coordinator: '',
       timing: '',
       groupConfirmed,
-      inputsReceived: 'N',
+      participantsReceived: 'N',
+      avReceived: 'N',
       withdrawn: false,
       withdrawnAt: null,
       runTimeSeconds: null
@@ -1733,6 +1735,12 @@ function migratePrograms(cached){
     const defaults = freshById.get(p.id);
     if(!defaults) return p;
     const filled = { ...defaults, ...p };
+    // Migrate the old single "inputsReceived" field into the new split
+    // participantsReceived / avReceived fields, preserving existing data.
+    if(p.inputsReceived != null && p.participantsReceived == null){
+      filled.participantsReceived = p.inputsReceived;
+      delete filled.inputsReceived;
+    }
     if(JSON.stringify(filled) !== JSON.stringify(p)) changed = true;
     return filled;
   });
@@ -2318,8 +2326,10 @@ function renderProgramsTabShell(cfg){
       </select>
       <select class="filter-select" id="${cfg.statusFilterId}">
         <option value="">All statuses</option>
-        <option value="Y">Inputs received</option>
-        <option value="N">Inputs pending</option>
+        <option value="participants-y">Participants received</option>
+        <option value="participants-n">Participants pending</option>
+        <option value="av-y">AV received</option>
+        <option value="av-n">AV pending</option>
         <option value="pending-name">Name pending</option>
       </select>
       <select class="filter-select" id="${cfg.coordinatorFilterId}">
@@ -2330,12 +2340,13 @@ function renderProgramsTabShell(cfg){
     <table class="program-table">
       <thead>
         <tr>
-          <th style="width:19%;">Program</th>
-          <th style="width:10%;">Run time</th>
-          <th style="width:14%;">Category</th>
-          <th style="width:15%;">Program lead</th>
-          <th style="width:14%;">Program coordinator</th>
-          <th style="width:11%;">Inputs received</th>
+          <th style="width:17%;">Program</th>
+          <th style="width:9%;">Run time</th>
+          <th style="width:12%;">Category</th>
+          <th style="width:13%;">Program lead</th>
+          <th style="width:12%;">Program coordinator</th>
+          <th style="width:11%;">Participants received</th>
+          <th style="width:11%;">AV received</th>
           <th style="width:6%;"></th>
         </tr>
       </thead>
@@ -2398,8 +2409,10 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
   const scoped = programsForGroupValue(groupValue);
   const filtered = scoped.filter(p=>{
     if(filters.category && p.category !== filters.category) return false;
-    if(filters.status === 'Y' && p.inputsReceived !== 'Y') return false;
-    if(filters.status === 'N' && p.inputsReceived !== 'N') return false;
+    if(filters.status === 'participants-y' && p.participantsReceived !== 'Y') return false;
+    if(filters.status === 'participants-n' && p.participantsReceived !== 'N') return false;
+    if(filters.status === 'av-y' && p.avReceived !== 'Y') return false;
+    if(filters.status === 'av-n' && p.avReceived !== 'N') return false;
     if(filters.status === 'pending-name' && !p.isPending) return false;
     if(filters.coordinator === '__unassigned__' && p.coordinator) return false;
     if(filters.coordinator && filters.coordinator !== '__unassigned__' && p.coordinator !== filters.coordinator) return false;
@@ -2436,10 +2449,16 @@ function renderProgramRowsInto(tbodyId, emptyStateId, filters, groupValue){
             ${COORDINATORS.map(c=>`<option value="${c}" ${p.coordinator===c?'selected':''}>${c}</option>`).join('')}
           </select>
         </td>
-        <td data-label="Inputs received">
+        <td data-label="Participants received">
           <div class="yn-toggle">
-            <button class="yes ${p.inputsReceived==='Y'?'active':''}" data-field="inputsReceived" data-value="Y" data-id="${p.id}">Y</button>
-            <button class="no ${p.inputsReceived==='N'?'active':''}" data-field="inputsReceived" data-value="N" data-id="${p.id}">N</button>
+            <button class="yes ${p.participantsReceived==='Y'?'active':''}" data-field="participantsReceived" data-value="Y" data-id="${p.id}">Y</button>
+            <button class="no ${p.participantsReceived==='N'?'active':''}" data-field="participantsReceived" data-value="N" data-id="${p.id}">N</button>
+          </div>
+        </td>
+        <td data-label="AV received">
+          <div class="yn-toggle">
+            <button class="yes ${p.avReceived==='Y'?'active':''}" data-field="avReceived" data-value="Y" data-id="${p.id}">Y</button>
+            <button class="no ${p.avReceived==='N'?'active':''}" data-field="avReceived" data-value="N" data-id="${p.id}">N</button>
           </div>
         </td>
         <td data-label="Withdraw" style="text-align:right;">
@@ -2827,8 +2846,7 @@ function triggerConfetti(){
 function getProgramsNeedingAttention(){
   const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
   return active.filter(p=>{
-    const hasParticipants = (state.participants[p.id] || []).length > 0;
-    return p.isPending || p.inputsReceived !== 'Y' || !hasParticipants;
+    return p.isPending || p.participantsReceived !== 'Y' || p.avReceived !== 'Y';
   });
 }
 
@@ -2838,8 +2856,8 @@ function renderDashboardTab(){
 
   const active = state.programs.filter(p=>!p.withdrawn && !p.isAdminItem);
   const total = active.length;
-  const inputsReady = active.filter(p=>p.inputsReceived==='Y').length;
-  const withParticipants = active.filter(p=>(state.participants[p.id]||[]).length>0).length;
+  const participantsReady = active.filter(p=>p.participantsReceived==='Y').length;
+  const avReady = active.filter(p=>p.avReceived==='Y').length;
   const placeholders = active.filter(p=>p.isPending).length;
   const sponsorshipTotal = getTotalSponsorshipAmount();
   const needsAttention = getProgramsNeedingAttention();
@@ -2849,9 +2867,9 @@ function renderDashboardTab(){
   const coordRows = COORDINATORS.map(name=>{
     const assigned = active.filter(p=>p.coordinator===name);
     if(assigned.length===0) return '';
-    const ready = assigned.filter(p=>p.inputsReceived==='Y').length;
+    const ready = assigned.filter(p=>p.participantsReceived==='Y' && p.avReceived==='Y').length;
     const percent = pct(ready, assigned.length);
-    const notReady = assigned.filter(p=>p.inputsReceived!=='Y').map(p=>escapeHtml(p.isPending ? 'Pending name' : p.programName));
+    const notReady = assigned.filter(p=>!(p.participantsReceived==='Y' && p.avReceived==='Y')).map(p=>escapeHtml(p.isPending ? 'Pending name' : p.programName));
     return `
       <div class="dash-coord-row">
         <div class="dash-coord-name">${escapeHtml(name)}</div>
@@ -2867,14 +2885,13 @@ function renderDashboardTab(){
   const unassignedCount = active.filter(p=>!p.coordinator).length;
 
   const attentionRows = needsAttention.length ? needsAttention.map(p=>{
-    const hasParticipants = (state.participants[p.id]||[]).length>0;
     const reasons = [];
     if(p.isPending) reasons.push('name pending');
-    if(p.inputsReceived!=='Y') reasons.push('inputs not received');
-    if(!hasParticipants) reasons.push('no participants entered');
+    if(p.participantsReceived!=='Y') reasons.push('participants pending');
+    if(p.avReceived!=='Y') reasons.push('AV pending');
     return `
       <div class="dash-attn-row">
-        <div class="dash-attn-name">${escapeHtml(p.isPending ? p.programName : p.programName)}</div>
+        <div class="dash-attn-name">${escapeHtml(p.programName)}</div>
         <div class="dash-attn-meta">${p.submitter ? escapeHtml(p.submitter) : 'No lead listed'}</div>
         <div class="dash-attn-reasons">${reasons.map(r=>`<span class="badge-pending">${r}</span>`).join(' ')}</div>
       </div>
@@ -2891,8 +2908,8 @@ function renderDashboardTab(){
 
     <div class="stat-pills">
       <div class="stat-pill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg> <b>${total}</b> active programs</div>
-      <div class="stat-pill ${inputsReady===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg> <b>${inputsReady}/${total}</b> inputs received (${pct(inputsReady,total)}%)</div>
-      <div class="stat-pill ${withParticipants===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/></svg> <b>${withParticipants}/${total}</b> have participants entered (${pct(withParticipants,total)}%)</div>
+      <div class="stat-pill ${participantsReady===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/></svg> <b>${participantsReady}/${total}</b> participants received (${pct(participantsReady,total)}%)</div>
+      <div class="stat-pill ${avReady===total ? 'ok' : 'warn'}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/></svg> <b>${avReady}/${total}</b> AV received (${pct(avReady,total)}%)</div>
       ${placeholders>0 ? `<div class="stat-pill warn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg> <b>${placeholders}</b> placeholder name${placeholders===1?'':'s'} to finalise</div>` : ''}
       ${unassignedCount>0 ? `<div class="stat-pill warn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg> <b>${unassignedCount}</b> unassigned coordinator${unassignedCount===1?'':'s'}</div>` : ''}
       <div class="stat-pill ok"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg> <b>${formatCurrency(sponsorshipTotal)}</b> raised in sponsorship</div>
@@ -3780,9 +3797,10 @@ function renderFinalTab(){
         </div>
       `;
     }
+    const fullyReady = p.participantsReceived==='Y' && p.avReceived==='Y';
     const statusBadge = p.isPending
       ? `<span class="badge-pending">Name pending</span>`
-      : (p.inputsReceived==='Y' ? `<span class="badge-ready">Ready</span>` : `<span class="badge-pending">Awaiting input</span>`);
+      : (fullyReady ? `<span class="badge-ready">Ready</span>` : `<span class="badge-pending">${p.participantsReceived!=='Y' ? 'Participants pending' : 'AV pending'}</span>`);
     return `
       <div class="final-row">
         <div class="fnum">${idx+1}</div>
