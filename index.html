@@ -1084,6 +1084,38 @@
   .dash-coord-pct{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
   .dash-coord-pending{font-size:12px;color:var(--marigold-dark);margin-top:6px;}
 
+  /* Coordinator cards */
+  .coord-card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:12px;
+  }
+  .coord-card{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    background:var(--white);
+  }
+  .coord-card.cc-done{border-color:#A8D5A2;}
+  .coord-card.cc-partial{border-color:#F0C070;}
+  .coord-card.cc-behind{border-color:#E8A090;}
+  .coord-card-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;}
+  .coord-card-name{font-weight:700;color:var(--maroon);font-size:14px;}
+  .coord-card-pct{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;font-weight:700;line-height:1;}
+  .cc-done .coord-card-pct{color:#2C5836;}
+  .cc-partial .coord-card-pct{color:#8A5710;}
+  .cc-behind .coord-card-pct{color:#8B2020;}
+  .coord-card-bar{height:6px;border-radius:99px;background:#EFE6D6;overflow:hidden;margin-bottom:6px;}
+  .coord-card-bar-fill{height:100%;border-radius:99px;}
+  .cc-done .coord-card-bar-fill{background:#4CAF50;}
+  .cc-partial .coord-card-bar-fill{background:var(--marigold);}
+  .cc-behind .coord-card-bar-fill{background:#E8643A;}
+  .coord-card-sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+  .coord-card-pending{border-top:1px solid var(--line);padding-top:8px;margin-top:4px;display:flex;flex-direction:column;gap:4px;}
+  .cc-prog-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .cc-prog-name{font-size:12px;font-weight:600;color:var(--ink);flex:1;min-width:0;}
+  .cc-prog-issues{font-size:11px;color:var(--marigold-dark);white-space:nowrap;}
+
   /* Presenter view */
   .presenter-stage{
     display:flex;
@@ -1385,6 +1417,7 @@
   .ico{width:16px;height:16px;vertical-align:-3px;flex-shrink:0;}
   .empty-state .ico, .empty-state svg{width:34px;height:34px;color:var(--line);}
   .tab-btn .ico{width:17px;height:17px;}
+  .tab-mobile-only{display:none;}
 
   /* ===================== MOBILE LAYOUT ===================== */
   @media (max-width: 640px){
@@ -1395,6 +1428,41 @@
     .tabbar{padding:0 8px;gap:0;}
     .tab-btn{padding:13px 12px 11px;font-size:13.5px;gap:6px;}
     .tab-btn .count{font-size:11px;padding:1px 6px;}
+    .tab-overflow-hide{display:none;}
+    .tab-mobile-only{display:flex !important;}
+    .tab-more-wrap{position:relative;display:flex;align-items:stretch;}
+    .tab-more-btn{display:flex;align-items:center;gap:6px;padding:13px 12px 11px;font-size:13.5px;}
+    .tab-more-btn.active{color:var(--maroon);border-bottom-color:var(--marigold);}
+    .tab-more-dropdown{
+      display:none;
+      position:absolute;
+      top:100%;
+      right:0;
+      background:var(--white);
+      border:1px solid var(--line);
+      border-radius:10px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.12);
+      z-index:200;
+      min-width:200px;
+      padding:6px;
+    }
+    .tab-more-dropdown.open{display:block;}
+    .tab-more-item{
+      display:block;
+      width:100%;
+      text-align:left;
+      padding:11px 14px;
+      font-size:14px;
+      font-weight:600;
+      font-family:inherit;
+      border:none;
+      background:none;
+      color:var(--ink-soft);
+      cursor:pointer;
+      border-radius:7px;
+    }
+    .tab-more-item:hover{background:var(--ivory);color:var(--maroon);}
+    .tab-more-item.active{color:var(--maroon);background:var(--ivory-dark);}
 
     /* Poster section: slightly smaller toggle text, full-width-ish image */
     .poster-toggle{font-size:12.5px;padding:11px 12px;}
@@ -1541,11 +1609,21 @@
   <button class="tab-btn" data-tab="programs-confirmed"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg>Programs <span class="count" id="countProgramsConfirmed">0</span></button>
   <button class="tab-btn" data-tab="contacts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg>Program contacts <span class="count" id="countContacts">0</span></button>
   <button class="tab-btn" data-tab="participants"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="8" r="2.4"/><path d="M3 20v-1a5 5 0 0 1 5 -5h2a5 5 0 0 1 5 5v1"/><path d="M16.5 14.2a4 4 0 0 1 3.5 3.96V19"/></svg>Participants <span class="count" id="countParticipants">0</span></button>
-  <button class="tab-btn" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
-  <button class="tab-btn" data-tab="whatsapp"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a0.5 0.5 0 0 0 1 0V9a0.5 0.5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a0.5 0.5 0 0 0 0 -1H14a0.5 0.5 0 0 0 0 1"/></svg>WhatsApp nudges</button>
-  <button class="tab-btn" data-tab="sponsors"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg>Sponsors <span class="count" id="countSponsors">0</span></button>
-  <button class="tab-btn" data-tab="final"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6h9M11 12h9M11 18h9"/></svg>Final running order <span class="count" id="countFinal">0</span></button>
-  <button class="tab-btn" data-tab="deleted"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/><path d="M10 11v6M14 11v6"/></svg>Deleted programs <span class="count" id="countDeleted">0</span></button>
+  <button class="tab-btn tab-overflow-hide" data-tab="sequence"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="10" r="2"/><path d="M6 4v4M6 12v8M12 4v8M12 16a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"/><path d="M18 4v8"/><circle cx="18" cy="16" r="2"/><path d="M18 18v2"/></svg>Sequence builder</button>
+  <button class="tab-btn tab-overflow-hide" data-tab="whatsapp"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a0.5 0.5 0 0 0 1 0V9a0.5 0.5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a0.5 0.5 0 0 0 0 -1H14a0.5 0.5 0 0 0 0 1"/></svg>WhatsApp nudges</button>
+  <button class="tab-btn tab-overflow-hide" data-tab="sponsors"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.5 5.5l6 0.8l-4.3 4.2l1 6l-5.2-2.9l-5.2 2.9l1-6l-4.3-4.2l6-0.8z"/></svg>Sponsors <span class="count" id="countSponsors">0</span></button>
+  <button class="tab-btn tab-overflow-hide" data-tab="final"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/><path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/><path d="M11 6h9M11 12h9M11 18h9"/></svg>Final running order <span class="count" id="countFinal">0</span></button>
+  <button class="tab-btn tab-overflow-hide" data-tab="deleted"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2m2 0l-1 13a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 7"/><path d="M10 11v6M14 11v6"/></svg>Deleted programs <span class="count" id="countDeleted">0</span></button>
+  <div class="tab-more-wrap tab-mobile-only" id="tabMoreWrap">
+    <button class="tab-btn tab-more-btn" id="tabMoreBtn">More <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6-6"/></svg></button>
+    <div class="tab-more-dropdown" id="tabMoreDropdown">
+      <button class="tab-more-item" data-tab="sequence">Sequence builder</button>
+      <button class="tab-more-item" data-tab="whatsapp">WhatsApp nudges</button>
+      <button class="tab-more-item" data-tab="sponsors">Sponsors <span class="count" id="countSponsorsMobile">0</span></button>
+      <button class="tab-more-item" data-tab="final">Final running order <span class="count" id="countFinalMobile">0</span></button>
+      <button class="tab-more-item" data-tab="deleted">Deleted programs <span class="count" id="countDeletedMobile">0</span></button>
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -2142,27 +2220,52 @@ function renderPookalamRing(){
 }
 
 // ===================== TABS =====================
-function initTabs(){
-  document.querySelectorAll('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const tab = btn.dataset.tab;
-      ['dashboard','presenter','programs-confirmed','contacts','participants','whatsapp','sponsors','sequence','final','deleted'].forEach(t=>{
-        document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
-      });
-      if(tab==='dashboard') renderDashboardTab();
-      if(tab==='presenter') renderPresenterTab();
-      if(tab==='programs-confirmed') renderProgramsConfirmedTab();
-      if(tab==='contacts') renderContactsTab();
-      if(tab==='participants') renderParticipantsTab();
-      if(tab==='whatsapp') renderWhatsappTab();
-      if(tab==='sponsors') renderSponsorsTab();
-      if(tab==='sequence') renderSequenceTab();
-      if(tab==='final') renderFinalTab();
-      if(tab==='deleted') renderDeletedTab();
-    });
+function switchToTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-more-item').forEach(b=>b.classList.remove('active'));
+  const mainBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+  if(mainBtn) mainBtn.classList.add('active');
+  const moreItem = document.querySelector(`.tab-more-item[data-tab="${tab}"]`);
+  if(moreItem){
+    moreItem.classList.add('active');
+    document.getElementById('tabMoreBtn')?.classList.add('active');
+  }
+  // close dropdown
+  document.getElementById('tabMoreDropdown')?.classList.remove('open');
+
+  ['dashboard','presenter','programs-confirmed','contacts','participants','whatsapp','sponsors','sequence','final','deleted'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = (t===tab) ? 'block' : 'none';
   });
+  if(tab==='dashboard') renderDashboardTab();
+  if(tab==='presenter') renderPresenterTab();
+  if(tab==='programs-confirmed') renderProgramsConfirmedTab();
+  if(tab==='contacts') renderContactsTab();
+  if(tab==='participants') renderParticipantsTab();
+  if(tab==='whatsapp') renderWhatsappTab();
+  if(tab==='sponsors') renderSponsorsTab();
+  if(tab==='sequence') renderSequenceTab();
+  if(tab==='final') renderFinalTab();
+  if(tab==='deleted') renderDeletedTab();
+}
+
+function initTabs(){
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=> switchToTab(btn.dataset.tab));
+  });
+
+  // More dropdown
+  const moreBtn = document.getElementById('tabMoreBtn');
+  const moreDropdown = document.getElementById('tabMoreDropdown');
+  if(moreBtn && moreDropdown){
+    moreBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      moreDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', ()=> moreDropdown.classList.remove('open'));
+    moreDropdown.querySelectorAll('.tab-more-item').forEach(item=>{
+      item.addEventListener('click', ()=> switchToTab(item.dataset.tab));
+    });
+  }
 }
 
 // ===================== PROGRAMS TABS =====================
@@ -3000,20 +3103,29 @@ function renderDashboardTab(){
 
   const pct = (n,d)=> d===0 ? 0 : Math.round((n/d)*100);
 
-  const coordRows = COORDINATORS.map(name=>{
+  const coordCards = COORDINATORS.map(name=>{
     const assigned = active.filter(p=>p.coordinator===name);
     if(assigned.length===0) return '';
-    const ready = assigned.filter(p=>p.participantsReceived==='Y' && p.avReceived==='Y').length;
+    const ready = assigned.filter(p=>p.participantsReceived==='Y' && p.avReceived==='Y' && !p.isPending).length;
     const percent = pct(ready, assigned.length);
-    const notReady = assigned.filter(p=>!(p.participantsReceived==='Y' && p.avReceived==='Y')).map(p=>escapeHtml(p.isPending ? 'Pending name' : p.programName));
+    const colorClass = percent===100 ? 'cc-done' : percent>=50 ? 'cc-partial' : 'cc-behind';
+    const notReady = assigned.filter(p=>!(p.participantsReceived==='Y' && p.avReceived==='Y' && !p.isPending));
+    const pendingTags = notReady.map(p=>{
+      const issues=[];
+      if(p.isPending) issues.push('name');
+      if(p.participantsReceived!=='Y') issues.push('participants');
+      if(p.avReceived!=='Y') issues.push('AV');
+      return `<div class="cc-prog-row"><span class="cc-prog-name">${escapeHtml(p.programName)}</span><span class="cc-prog-issues">${issues.join(' · ')}</span></div>`;
+    }).join('');
     return `
-      <div class="dash-coord-row">
-        <div class="dash-coord-name">${escapeHtml(name)}</div>
-        <div class="dash-coord-bar-wrap">
-          <div class="dash-coord-bar"><div class="dash-coord-bar-fill" style="width:${percent}%;"></div></div>
-          <span class="dash-coord-pct">${ready}/${assigned.length} ready</span>
+      <div class="coord-card ${colorClass}">
+        <div class="coord-card-header">
+          <div class="coord-card-name">${escapeHtml(name)}</div>
+          <div class="coord-card-pct">${percent}%</div>
         </div>
-        ${notReady.length ? `<div class="dash-coord-pending">Awaiting: ${notReady.slice(0,3).join(', ')}${notReady.length>3 ? ` +${notReady.length-3} more` : ''}</div>` : ''}
+        <div class="coord-card-bar"><div class="coord-card-bar-fill" style="width:${percent}%"></div></div>
+        <div class="coord-card-sub">${ready} of ${assigned.length} program${assigned.length===1?'':'s'} ready</div>
+        ${pendingTags ? `<div class="coord-card-pending">${pendingTags}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -3065,7 +3177,7 @@ function renderDashboardTab(){
 
     <div class="panel">
       <h3>By coordinator</h3>
-      <div class="dash-coord-list">${coordRows || '<div class="dash-empty">No programs assigned to coordinators yet.</div>'}</div>
+      <div class="coord-card-grid">${coordCards || '<div class="dash-empty">No programs assigned to coordinators yet.</div>'}</div>
     </div>
   `;
 
