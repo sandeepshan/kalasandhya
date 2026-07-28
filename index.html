@@ -3663,7 +3663,8 @@ function printRunningOrder(){
     const t = times[idx];
     const startStr = t ? formatClockTime(t.startTime) : '';
 
-    if(item.type==='admin'){
+    const effectiveType = (item.type === 'admin' && p && !isEffectivelyAdminItem(p)) ? 'program' : item.type;
+    if(effectiveType==='admin'){
       return `
         <tr class="pb-admin">
           <td class="pb-num">${idx+1}</td>
@@ -4082,11 +4083,12 @@ function renderSeqList(){
     seqList.innerHTML = state.sequence.map((item, idx)=>{
       const p = state.programs.find(p=>p.id===item.programId);
       if(!p) return '';
-      const subtitle = item.type === 'admin'
+      const effType = (item.type === 'admin' && !isEffectivelyAdminItem(p)) ? 'program' : item.type;
+      const subtitle = effType === 'admin'
         ? 'Admin item'
         : `${escapeHtml(p.category)} · ${p.coordinator ? 'Coord: '+escapeHtml(p.coordinator) : 'No coordinator yet'}`;
       return `
-        <div class="seq-item${item.type === 'admin' ? ' admin-slot' : ''}" draggable="true" data-id="${item.id}">
+        <div class="seq-item${effType === 'admin' ? ' admin-slot' : ''}" draggable="true" data-id="${item.id}">
           <span class="num">${idx+1}</span>
           <span class="grip"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></span>
           <div class="info">
@@ -4198,7 +4200,8 @@ function renderFinalTab(){
 
     const p = state.programs.find(p=>p.id===item.programId);
     if(!p) return '';
-    if(item.type === 'admin'){
+    const rowEffType = (item.type === 'admin' && !isEffectivelyAdminItem(p)) ? 'program' : item.type;
+    if(rowEffType === 'admin'){
       return `
         <div class="final-row admin">
           <div class="fnum">${idx+1}</div>
@@ -4274,7 +4277,7 @@ function exportRunningOrderExcel(){
     const endStr   = t ? formatClockTime(t.endTime) : '';
     const durMins  = t ? Math.round(t.durationSeconds/60) : '';
     const participants = (state.participants[p.id]||[]).map(pt=>pt.name).join(', ');
-    const type = item.type === 'admin' ? 'Admin' : 'Program';
+    const type = (item.type === 'admin' && p && !isEffectivelyAdminItem(p)) ? 'Program' : item.type === 'admin' ? 'Admin' : 'Program';
     rows.push([
       idx+1,
       p.programName,
