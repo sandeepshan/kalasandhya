@@ -3678,9 +3678,15 @@ function printRunningOrder(){
         </tr>`;
     }
 
-    const participantList = (state.participants[p.id]||[]).map(pt=>escapeHtml(pt.name)).join(' &nbsp;·&nbsp; ');
     const isDance = p.category && (p.category.includes('Dance') || p.category === 'Thiruvathirakali');
-    const leadLine = (isDance && p.submitter && /[a-zA-Z]/.test(p.submitter)) ? `<div class="pb-prog-lead">Choreography: ${escapeHtml(p.submitter.trim())}</div>` : '';
+    const hasChoreographer = isDance && p.submitter && /[a-zA-Z]/.test(p.submitter);
+    const baseParticipants = (state.participants[p.id]||[]).map(pt=>escapeHtml(pt.name));
+    // For non-dance programs with a valid submitter, prepend them to the participants line
+    if (!hasChoreographer && p.submitter && /[a-zA-Z]/.test(p.submitter)) {
+      baseParticipants.unshift(escapeHtml(p.submitter.trim()));
+    }
+    const participantList = baseParticipants.join(' &nbsp;·&nbsp; ');
+    const leadLine = hasChoreographer ? `<div class="pb-prog-lead">Choreography: ${escapeHtml(p.submitter.trim())}</div>` : '';
     return `
       <tr>
         <td class="pb-num">${idx+1}</td>
@@ -4238,7 +4244,7 @@ function renderFinalTab(){
         <div class="fnum">${idx+1}</div>
         <div class="finfo">
           <div class="ft">${escapeHtml(p.programName)}</div>
-          <div class="fs">${escapeHtml(p.category)}${(p.submitter && /[a-zA-Z]/.test(p.submitter) && p.category && (p.category.includes('Dance')||p.category==='Thiruvathirakali')) ? ` &nbsp;·&nbsp; Choreography: ${escapeHtml(p.submitter.trim())}` : ''}</div>
+          <div class="fs">${escapeHtml(p.category)}${(p.submitter && /[a-zA-Z]/.test(p.submitter) && p.category && (p.category.includes('Dance')||p.category==='Thiruvathirakali')) ? ` &nbsp;·&nbsp; Choreography: ${escapeHtml(p.submitter.trim())}` : (p.submitter && /[a-zA-Z]/.test(p.submitter) ? ` &nbsp;·&nbsp; ${escapeHtml(p.submitter.trim())}` : '')}</div>
         </div>
         ${timingHtml}
         <div class="fstatus">${statusBadge}</div>
