@@ -2785,7 +2785,7 @@ function escapeHtml(s){
 
 // ===================== RUN TIME / RUN SHEET HELPERS =====================
 const DEFAULT_RUN_TIME_SECONDS = 5 * 60;
-const BUFFER_SECONDS = 90; // 1.5 min buffer between every item
+const BUFFER_SECONDS = 120; // 2 min buffer between every item
 const SHOW_START_TIME = { hour: 16, minute: 0 }; // 4:00pm
 
 // ===================== EVENT DATE / VENUE =====================
@@ -3680,8 +3680,7 @@ function printRunningOrder(){
 
     const participantList = (state.participants[p.id]||[]).map(pt=>escapeHtml(pt.name)).join(' &nbsp;·&nbsp; ');
     const isDance = p.category && (p.category.includes('Dance') || p.category === 'Thiruvathirakali');
-    const leadLabel = isDance ? 'Choreographer' : 'Lead';
-    const leadLine = p.submitter ? `<div class="pb-prog-lead">${leadLabel}: ${escapeHtml(p.submitter)}</div>` : '';
+    const leadLine = (isDance && p.submitter) ? `<div class="pb-prog-lead">Choreographer: ${escapeHtml(p.submitter)}</div>` : '';
     return `
       <tr>
         <td class="pb-num">${idx+1}</td>
@@ -4239,7 +4238,7 @@ function renderFinalTab(){
         <div class="fnum">${idx+1}</div>
         <div class="finfo">
           <div class="ft">${escapeHtml(p.programName)}</div>
-          <div class="fs">${escapeHtml(p.category)}${p.submitter ? ` &nbsp;·&nbsp; ${(p.category&&(p.category.includes('Dance')||p.category==='Thiruvathirakali'))?'Choreographer':'Lead'}: ${escapeHtml(p.submitter)}` : ''}</div>
+          <div class="fs">${escapeHtml(p.category)}${(p.submitter && p.category && (p.category.includes('Dance')||p.category==='Thiruvathirakali')) ? ` &nbsp;·&nbsp; Choreographer: ${escapeHtml(p.submitter)}` : ''}</div>
         </div>
         ${timingHtml}
         <div class="fstatus">${statusBadge}</div>
