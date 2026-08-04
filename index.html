@@ -1281,6 +1281,7 @@
   .pb-prog-name{ font-weight:700; font-size:10pt; color:#7A1F2B; line-height:1.3; }
   .pb-admin .pb-prog-name{ color:#A8631C; font-weight:700; font-style:normal; font-size:10pt; }
   .pb-prog-participants{ font-size:8.5pt; color:#555; margin-top:3px; line-height:1.5; }
+  .pb-prog-lead{ font-size:8.5pt; color:#A8631C; font-style:italic; margin-top:2px; }
   .pb-time{ text-align:right; font-size:9pt; font-weight:700; color:#A8631C; white-space:nowrap; vertical-align:top; padding-top:8px; width:88px; }
   .pb-admin .pb-time{ color:#999; font-weight:400; }
   .pb-footer{ border-top:2px solid #7A1F2B; padding-top:9px; display:flex; justify-content:space-between; align-items:center; font-size:8pt; color:#aaa; }
@@ -3678,11 +3679,15 @@ function printRunningOrder(){
     }
 
     const participantList = (state.participants[p.id]||[]).map(pt=>escapeHtml(pt.name)).join(' &nbsp;·&nbsp; ');
+    const isDance = p.category && (p.category.includes('Dance') || p.category === 'Thiruvathirakali');
+    const leadLabel = isDance ? 'Choreographer' : 'Lead';
+    const leadLine = p.submitter ? `<div class="pb-prog-lead">${leadLabel}: ${escapeHtml(p.submitter)}</div>` : '';
     return `
       <tr>
         <td class="pb-num">${idx+1}</td>
         <td>
           <div class="pb-prog-name">${escapeHtml(p.programName)}</div>
+          ${leadLine}
           ${participantList ? `<div class="pb-prog-participants">${participantList}</div>` : ''}
         </td>
         <td class="pb-time">${startStr}</td>
@@ -4234,7 +4239,7 @@ function renderFinalTab(){
         <div class="fnum">${idx+1}</div>
         <div class="finfo">
           <div class="ft">${escapeHtml(p.programName)}</div>
-          <div class="fs">${escapeHtml(p.category)} · ${escapeHtml(p.submitter)}</div>
+          <div class="fs">${escapeHtml(p.category)}${p.submitter ? ` &nbsp;·&nbsp; ${(p.category&&(p.category.includes('Dance')||p.category==='Thiruvathirakali'))?'Choreographer':'Lead'}: ${escapeHtml(p.submitter)}` : ''}</div>
         </div>
         ${timingHtml}
         <div class="fstatus">${statusBadge}</div>
